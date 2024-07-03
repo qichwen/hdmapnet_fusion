@@ -1,0 +1,38 @@
+[
+    {
+        "channel": "CAM_FRONT",
+        "token": "725903f5b62f56118f4094b46a4470d8",
+        "modality": "camera",
+        "calibrated_sensor_token": "1d31c729b073425e8e0202c5c6e66ee1"
+    },
+    {
+        "channel": "CAM_BACK",
+        "token": "ce89d4f3050b5892b33b3d328c5e82a3",
+        "modality": "camera",
+        "calibrated_sensor_token": "4ff47c4950f04cb4be1876bc0b028326"
+    },
+    {
+        "channel": "CAM_BACK_LEFT",
+        "token": "a89643a5de885c6486df2232dc954da2",
+        "modality": "camera",
+        "calibrated_sensor_token": "3bc29be787ea4fc79144c4a46a3c91ca"
+    },
+    {
+        "channel": "CAM_FRONT_LEFT",
+        "token": "ec4b5d41840a509984f7ec36419d4c09",
+        "modality": "camera",
+        "calibrated_sensor_token": "75ad8e2a8a3f4594a13db2398430d097"
+    },
+    {
+        "channel": "CAM_FRONT_RIGHT",
+        "token": "2f7ad058f1ac5557bf321c7543758f43",
+        "modality": "camera",
+        "calibrated_sensor_token": "f8d0aaa1a8234ba3aeed5867e0aa81aa"
+    },
+    {
+        "channel": "CAM_BACK_RIGHT",
+        "token": "ca7dba2ec9f95951bbe67246f7f2c3f7",
+        "modality": "camera",
+        "calibrated_sensor_token": "3b00acc55ed941fa9f405e0c1fd2b639"
+    }
+]

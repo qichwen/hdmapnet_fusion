@@ -1,0 +1,60 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+
+        {
+            "name": "Python: vis_label.py",
+            "type": "python",
+            "request": "launch",
+            "program": "/home/qichwen/projects/MBMapLearning-master-Oct/vis_label.py",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "args": ["--dataroot","/home/qichwen/projects/HMBMapLearning-master-Oct/dataset/nuScenes","--version", "v1.0-mini"]
+                
+        },
+        {
+            "name": "Python: train.py",
+            "type": "python",
+            "request": "launch",
+            "program": "/home/qichwen/projects/MBMapLearning-master-Oct/train.py",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "args": ["--dataroot","/home/qichwen/projects/MBMapLearning-master-Oct/dataset/nuScenes","--instance_seg","--direction_pred","--version", "v1.0-mini","--logdir","./log"]
+        },
+        {
+            "name": "hmn-vis_pred-nusc-mini-e29",
+            "type": "python",
+            "request": "launch",
+            "program": "/home/qichwen/projects/MBMapLearning-master-Oct/vis_pred.py",
+            "args": ["--dataroot", "/home/qichwen/projects/MBMapLearning-master-Oct/dataset/nuScenes",
+                     "--modelf", "/home/qichwen/projects/MBMapLearning-master-Oct/log/model29.pt","--instance_seg","--direction_pred"
+                    ],
+            "cwd": "${workspaceFolder}", // 当前工作路径：当前文件所在的工作空间
+        },
+        {
+            "name": "export_pred_to_json",
+            "type": "python",
+            "request": "launch",
+            "program": "/home/qichwen/projects/MBMapLearning-master-Oct/export_pred_to_json.py",
+            "args": ["--dataroot", "/home/qichwen/projects/MBMapLearning-master-Oct/dataset/nuScenes",
+                     "--modelf", "/home/qichwen/projects/MBMapLearning-master-Oct/log/model29.pt"
+                    ],
+            "cwd": "${workspaceFolder}", // 当前工作路径：当前文件所在的工作空间
+        },        
+        {
+            "name": "Python: nuscene_test.py",
+            "type": "python",
+            "request": "launch",
+            "program": "/home/qichwen/projects/MBMapLearning-master-Oct/data/Nuscene_test.py",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "args": ["--dataroot","/home/qichwen/projects/MBMapLearning-master-Oct/dataset/nuScenes","--version", "v1.0-mini"]
+                
+        },
+    ]
+}
+
+//"/home/qichwen/projects/HDMapNet-repo-qc/dataset/nuScenes"

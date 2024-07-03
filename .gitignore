@@ -1,0 +1,65 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.ipynb
+.gitignore copy
+
+HDMapNet-fusion.code-workspace
+
+
+# C extensions
+*.so
+
+# cython generated cpp
+.vscode
+.idea
+*.parquet
+
+# custom
+*.pkl
+*.gif
+*.pkl.json
+*.log.json
+*~
+
+# Pytorch
+*.pth
+*.pt
+
+# demo
+*.jpg
+*.png
+*.obj
+*.ply
+*.zip
+*.mp4
+
+# Ignore files
+data/*.csv
+results/*.txt
+temp/
+
+# Ignore directories
+venv/
+.vscode/
+__pycache__/
+f30_output/
+img_IPMed/
+F120/
+dataset/MBCam_dropped/
+dataset/nuscenes_mb/
+plt_images/
+requirements/
+cluster_result/
+segment_result/
+vector_result/
+log/
+runs/
+
+# Ignore files with specific extensions
+*.pyc
+*.log
+dgps_aligned_info.txt
+rig_dynamic_calibration.json
+
