@@ -31,22 +31,24 @@ denormalize_img = torchvision.transforms.Compose((
 ))
 
 
-def img_transform(img, resize, resize_dims):
-    post_rot2 = torch.eye(2)
-    post_tran2 = torch.zeros(2)
+# def img_transform(img, resize, resize_dims):
+#     post_rot2 = torch.eye(2)
+#     post_tran2 = torch.zeros(2)
+#     #[(0,0)]
+#     img = img.resize(resize_dims)
 
-    img = img.resize(resize_dims)
+#     rot_resize = torch.Tensor([[resize[0], 0],
+#                                [0, resize[1]]])
+#     """tensor([[0.2200, 0.0000],
+#                 [0.0000, 0.1422]])"""
+#     post_rot2 = rot_resize @ post_rot2
+#     post_tran2 = rot_resize @ post_tran2
 
-    rot_resize = torch.Tensor([[resize[0], 0],
-                               [0, resize[1]]])
-    post_rot2 = rot_resize @ post_rot2
-    post_tran2 = rot_resize @ post_tran2
-
-    post_tran = torch.zeros(3)
-    post_rot = torch.eye(3)
-    post_tran[:2] = post_tran2
-    post_rot[:2, :2] = post_rot2
-    return img, post_rot, post_tran
+#     post_tran = torch.zeros(3)
+#     post_rot = torch.eye(3)
+#     post_tran[:2] = post_tran2
+#     post_rot[:2, :2] = post_rot2
+#     return img, post_rot, post_tran
 
 
 def get_rot(h):
@@ -55,34 +57,34 @@ def get_rot(h):
         [-np.sin(h), np.cos(h)],
     ])
 
-# def img_transform(img, resize, resize_dims, crop, flip, rotate):
-#     post_rot2 = torch.eye(2)
-#     post_tran2 = torch.zeros(2)
+def img_transform(img, resize, resize_dims, crop, flip, rotate):
+    post_rot2 = torch.eye(2)
+    post_tran2 = torch.zeros(2)
 
-#     # adjust image
-#     img = img.resize(resize_dims)
-#     img = img.crop(crop)
-#     if flip:
-#         img = img.transpose(method=Image.FLIP_LEFT_RIGHT)
-#     img = img.rotate(rotate)
+    # adjust image
+    img = img.resize(resize_dims)
+    img = img.crop(crop)
+    if flip:
+        img = img.transpose(method=Image.FLIP_LEFT_RIGHT)
+    img = img.rotate(rotate)
 
-#     # post-homography transformation
-#     post_rot2 *= resize
-#     post_tran2 -= torch.Tensor(crop[:2])
-#     if flip:
-#         A = torch.Tensor([[-1, 0], [0, 1]])
-#         b = torch.Tensor([crop[2] - crop[0], 0])
-#         post_rot2 = A.matmul(post_rot2)
-#         post_tran2 = A.matmul(post_tran2) + b
-#     A = get_rot(rotate/180*np.pi)
-#     b = torch.Tensor([crop[2] - crop[0], crop[3] - crop[1]]) / 2
-#     b = A.matmul(-b) + b
-#     post_rot2 = A.matmul(post_rot2)
-#     post_tran2 = A.matmul(post_tran2) + b
+    # post-homography transformation
+    post_rot2 *= resize
+    post_tran2 -= torch.Tensor(crop[:2])
+    if flip:
+        A = torch.Tensor([[-1, 0], [0, 1]])
+        b = torch.Tensor([crop[2] - crop[0], 0])
+        post_rot2 = A.matmul(post_rot2)
+        post_tran2 = A.matmul(post_tran2) + b
+    A = get_rot(rotate/180*np.pi)
+    b = torch.Tensor([crop[2] - crop[0], crop[3] - crop[1]]) / 2
+    b = A.matmul(-b) + b
+    post_rot2 = A.matmul(post_rot2)
+    post_tran2 = A.matmul(post_tran2) + b
 
-#     post_tran = torch.zeros(3)
-#     post_rot = torch.eye(3)
-#     post_tran[:2] = post_tran2
-#     post_rot[:2, :2] = post_rot2
-#     return img, post_rot, post_tran
+    post_tran = torch.zeros(3)
+    post_rot = torch.eye(3)
+    post_tran[:2] = post_tran2
+    post_rot[:2, :2] = post_rot2
+    return img, post_rot, post_tran
 

@@ -150,7 +150,7 @@ class TemporalIPMNet(IPMNet):
         _, C, H, W = topdown.shape
         topdown = topdown.view(B, T, C, H, W)
         
-        topdown = self.temporal_fusion(topdown, translation, yaw_pitch_roll[..., 0], smp)
+        topdown = self.temporal_fusion(topdown, translation, yaw_pitch_roll[..., 0], smp[0][0])
         # if draw:
         
         # seg, emb, dir = self.bevencode(topdown)

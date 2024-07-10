@@ -8,7 +8,13 @@ import torch
 from torch import nn
 
 from data.utils import gen_dx_bx
-from .base import CamEncode, BevEncode
+
+# Jul.10
+#from .base import CamEncode, BevEncode
+from .base import BevEncode
+from model.models import CamEncode
+
+
 
 
 def cumsum_trick(x, geom_feats, ranks):
@@ -71,14 +77,15 @@ class LiftSplat(nn.Module):
         # D x H/downsample x D/downsample x 3
         self.D, _, _, _ = self.frustum.shape
         self.camencode = CamEncode(self.D, self.camC, self.downsample)
-        self.bevencode = BevEncode(inC=self.camC, outC=outC, instance_seg=instance_seg, embedded_dim=embedded_dim)
+        # self.camencode = CamEncode(self.camC)
+        self.bevencode = BevEncode(inC=self.camC, outC=4, instance_seg=instance_seg, embedded_dim=embedded_dim)
 
         # toggle using QuickCumsum vs. autograd
         self.use_quickcumsum = True
 
     def create_frustum(self):
         # make grid in image plane
-        ogfH, ogfW = self.data_aug_conf['final_dim']
+        ogfH, ogfW = self.grid_conf['final_dim']
         fH, fW = ogfH // self.downsample, ogfW // self.downsample
         ds = torch.arange(*self.grid_conf['dbound'], dtype=torch.float).view(-1, 1, 1).expand(-1, fH, fW)
         D, _, _ = ds.shape
@@ -97,18 +104,26 @@ class LiftSplat(nn.Module):
         B, N, _ = trans.shape
 
         # *undo* post-transformation
-        # B x N x D x H x W x 3
+        
         points = self.frustum - post_trans.view(B, N, 1, 1, 1, 3)
+        # points = self.frustum 
+        # B x N x D x H x W x 3
         points = torch.inverse(post_rots).view(B, N, 1, 1, 1, 3, 3).matmul(points.unsqueeze(-1))
 
         # cam_to_ego
+        # B x N x D x H x W x 3 TODO: but currently 41, 8, 22, 3 received, need to expand. restore the original post-transformation steps
+        # points = points.unsqueeze(0).expand(B, N, *self.frustum.shape).contiguous()
+        
+        # B x N x D x H x W x 3
         points = torch.cat((points[:, :, :, :, :, :2] * points[:, :, :, :, :, 2:3],
                             points[:, :, :, :, :, 2:3]
-                            ), 5)
+                            ), 5)        
+
+        #d[u, v, 1]^T = intrins * rots^(-1) * ([x, y, z]^T - trans)
         combine = rots.matmul(torch.inverse(intrins))
         points = combine.view(B, N, 1, 1, 1, 3, 3).matmul(points).squeeze(-1)
         points += trans.view(B, N, 1, 1, 1, 3)
-
+        #Returns B x N x D x H/downsample x W/downsample x 3
         return points
 
     def get_cam_feats(self, x):
@@ -118,6 +133,7 @@ class LiftSplat(nn.Module):
 
         x = x.view(B*N, C, imH, imW)
         x = self.camencode(x)
+        
         x = x.view(B, N, self.camC, self.D, imH//self.downsample, imW//self.downsample)
         x = x.permute(0, 1, 3, 4, 5, 2)
 
@@ -176,8 +192,26 @@ class LiftSplat(nn.Module):
         x = self.voxel_pooling(geom, x)
 
         return x
+ 
+    # def forward(self, points, points_mask, x, rots, trans, intrins, post_rots, post_trans, translation, yaw_pitch_roll):
+    def forward(self, x, trans, rots, intrins, post_trans, post_rots, lidar_data, lidar_mask, translation, yaw_pitch_roll):
+        """_summary_
+            model(imgs.cuda(), trans.cuda(), rots.cuda(), intrins.cuda(),
+                    post_trans.cuda(), post_rots.cuda(), lidar_data.cuda(),
+                    lidar_mask.cuda(), car_trans.cuda(), yaw_pitch_roll.cuda())
+        Args:
+            x (_type_): _description_
+            rots (_type_): _description_
+            trans (_type_): _description_
+            intrins (_type_): _description_
+            post_rots (_type_): _description_
+            post_trans (_type_): _description_
+            translation (_type_): _description_
+            yaw_pitch_roll (_type_): _description_
 
-    def forward(self, points, points_mask, x, rots, trans, intrins, post_rots, post_trans, translation, yaw_pitch_roll):
+        Returns:
+            _type_: _description_
+        """
         x = self.get_voxels(x, rots, trans, intrins, post_rots, post_trans)
-        x = self.bevencode(x)
-        return x
+        # Jul.10        
+        return self.bevencode(x)

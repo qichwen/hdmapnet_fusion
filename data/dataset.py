@@ -76,40 +76,40 @@ class HDMapNetDataset(Dataset):
         yaw_pitch_roll = pos_rotation.yaw_pitch_roll
         return torch.tensor(car_trans), torch.tensor(yaw_pitch_roll)
 
-    def sample_augmentation(self):
-        fH, fW = self.data_conf['image_size']
-        resize = (fW / IMG_ORIGIN_W, fH / IMG_ORIGIN_H)
-        resize_dims = (fW, fH)
-        return resize, resize_dims
-
     # def sample_augmentation(self):
-    #     self.data_conf['resize_lim'] = (0.193, 0.225)
-    #     self.data_conf['bot_pct_lim'] = (0.0, 0.22)
-    #     self.data_conf['rand_flip'] = True
-    #     self.data_conf['rot_lim'] = (-5.4, -5.4)
-
     #     fH, fW = self.data_conf['image_size']
-    #     if self.is_train:
-    #         resize = np.random.uniform(*self.data_conf['resize_lim'])
-    #         resize_dims = (int(IMG_ORIGIN_W*resize), int(IMG_ORIGIN_H*resize))
-    #         newW, newH = resize_dims
-    #         crop_h = int((1 - np.random.uniform(*self.data_conf['bot_pct_lim']))*newH) - fH
-    #         crop_w = int(np.random.uniform(0, max(0, newW - fW)))
-    #         crop = (crop_w, crop_h, crop_w + fW, crop_h + fH)
-    #         flip = False
-    #         if self.data_conf['rand_flip'] and np.random.choice([0, 1]):
-    #             flip = True
-    #         rotate = np.random.uniform(*self.data_conf['rot_lim'])
-    #     else:
-    #         resize = max(fH/IMG_ORIGIN_H, fW/IMG_ORIGIN_W)
-    #         resize_dims = (int(IMG_ORIGIN_W*resize), int(IMG_ORIGIN_H*resize))
-    #         newW, newH = resize_dims
-    #         crop_h = int((1 - np.mean(self.data_conf['bot_pct_lim']))*newH) - fH
-    #         crop_w = int(max(0, newW - fW) / 2)
-    #         crop = (crop_w, crop_h, crop_w + fW, crop_h + fH)
-    #         flip = False
-    #         rotate = 0
-    #     return resize, resize_dims, crop, flip, rotate
+    #     resize = (fW / IMG_ORIGIN_W, fH / IMG_ORIGIN_H)
+    #     resize_dims = (fW, fH)
+    #     return resize, resize_dims
+
+    def sample_augmentation(self):
+        self.data_conf['resize_lim'] = (0.193, 0.225)
+        self.data_conf['bot_pct_lim'] = (0.0, 0.22)
+        self.data_conf['rand_flip'] = True
+        self.data_conf['rot_lim'] = (-5.4, -5.4)
+
+        fH, fW = self.data_conf['image_size']
+        if self.is_train:
+            resize = np.random.uniform(*self.data_conf['resize_lim'])
+            resize_dims = (int(IMG_ORIGIN_W*resize), int(IMG_ORIGIN_H*resize))
+            newW, newH = resize_dims
+            crop_h = int((1 - np.random.uniform(*self.data_conf['bot_pct_lim']))*newH) - fH
+            crop_w = int(np.random.uniform(0, max(0, newW - fW)))
+            crop = (crop_w, crop_h, crop_w + fW, crop_h + fH)
+            flip = False
+            if self.data_conf['rand_flip'] and np.random.choice([0, 1]):
+                flip = True
+            rotate = np.random.uniform(*self.data_conf['rot_lim'])
+        else:
+            resize = max(fH/IMG_ORIGIN_H, fW/IMG_ORIGIN_W)
+            resize_dims = (int(IMG_ORIGIN_W*resize), int(IMG_ORIGIN_H*resize))
+            newW, newH = resize_dims
+            crop_h = int((1 - np.mean(self.data_conf['bot_pct_lim']))*newH) - fH
+            crop_w = int(max(0, newW - fW) / 2)
+            crop = (crop_w, crop_h, crop_w + fW, crop_h + fH)
+            flip = False
+            rotate = 0
+        return resize, resize_dims, crop, flip, rotate
 
 
     def get_imgs(self, rec):
@@ -138,12 +138,11 @@ class HDMapNetDataset(Dataset):
             imgname = os.path.join(self.nusc.dataroot, samp['filename'])
             img = Image.open(imgname)
 
-            resize, resize_dims = self.sample_augmentation()
+            # resize, resize_dims = self.sample_augmentation()            
+            # img, post_rot, post_tran = img_transform(img, resize, resize_dims)
             
-            img, post_rot, post_tran = img_transform(img, resize, resize_dims)
-            
-            # resize, resize_dims, crop, flip, rotate = self.sample_augmentation()
-            # img, post_rot, post_tran = img_transform(img, resize, resize_dims, crop, flip, rotate)
+            resize, resize_dims, crop, flip, rotate = self.sample_augmentation()
+            img, post_rot, post_tran = img_transform(img, resize, resize_dims, crop, flip, rotate)
             
             # sample_token = samp['sample_token']
             # sample_channel = samp['channel']

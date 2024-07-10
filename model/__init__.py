@@ -5,7 +5,7 @@ from .pointpillar import PointPillar
 
 def get_model(method, data_conf, instance_seg=True, embedded_dim=16, direction_pred=True, angle_class=36):
     if method == 'lift_splat':
-        model = LiftSplat(data_conf, instance_seg=instance_seg, embedded_dim=embedded_dim)
+        model = LiftSplat(data_conf, data_conf, outC=data_conf['num_channels'], instance_seg=instance_seg, embedded_dim=embedded_dim)
     elif method == 'HDMapNet_cam':
 #(self, data_conf, instance_seg=True, embedded_dim=16, direction_pred=True, direction_dim=36, lidar=False)
         model = HDMapNet(data_conf, instance_seg=instance_seg, embedded_dim=embedded_dim, direction_pred=direction_pred, direction_dim=angle_class, lidar=False)
