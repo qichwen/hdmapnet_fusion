@@ -26,7 +26,7 @@ def eval_iou(model, val_loader):
             if torch.cuda.is_available():
                 semantic, embedding, direction = model(imgs.cuda(), trans.cuda(), rots.cuda(), intrins.cuda(),
                                                     post_trans.cuda(), post_rots.cuda(), lidar_data.cuda(),
-                                                    lidar_mask.cuda(), car_trans.cuda(), yaw_pitch_roll.cuda(), sample_token[0])
+                                                    lidar_mask.cuda(), car_trans.cuda(), yaw_pitch_roll.cuda())
 
                 semantic_gt = semantic_gt.cuda().float()
             else:
