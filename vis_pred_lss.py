@@ -101,7 +101,130 @@ def vis_resutls(args, img_name, batchi, sample_token_str):
     plt.close()
     # batchi = batchi + 1    
     print(f"exported to {new_image_path}")
-    
+
+def vis_segmentation_lss(model, val_loader):
+    model.eval()
+    with torch.no_grad():
+        segment_path = os.path.join(os.getcwd(), 'segment_result')
+        
+
+        if not os.path.exists(segment_path):
+            os.mkdir(segment_path)
+        for batchi, (imgs, trans, rots, intrins, post_trans, post_rots, lidar_data, lidar_mask, car_trans, yaw_pitch_roll, semantic_gt, instance_gt, direction_gt, sample_token) in enumerate(val_loader):
+            if torch.cuda.is_available():
+                semantic = model(imgs.cuda(), trans.cuda(), rots.cuda(), intrins.cuda(),
+                                                    post_trans.cuda(), post_rots.cuda(), lidar_data.cuda(),
+                                                    lidar_mask.cuda(), car_trans.cuda(), yaw_pitch_roll.cuda())
+                # semantic = semantic.softmax(1).cpu().numpy()
+                semantic = semantic.sigmoid().cpu()
+            else:
+                semantic, embedding, direction = model(imgs, trans, rots, intrins,
+                                                    post_trans, post_rots, lidar_data,
+                                                    lidar_mask, car_trans, yaw_pitch_roll,sample_token[0])
+                semantic = semantic.softmax(1).numpy()
+                # out = out.sigmoid().cpu()
+            # compare with gt, set NaN to non-valid value? #TODO
+            # print(semantic_gt.shape)
+            # print(semantic.shape)
+            # print("======shape of gt, then semantic as above======")
+
+            # print(semantic_gt)
+            # print("======semantic_gt above======")
+            # print(semantic_gt < 0.1)
+            # print("======semantic_gt < 0.1 above======")
+            # print(semantic[semantic_gt < 0.1])
+            # print("======output semantic_gt < 0.1 above======")
+            # print(semantic_gt[0][0][199])
+            #semantic[semantic_gt < 0.1] = np.nan
+            sample_token_str = sample_token[0]
+            pltimage_dir = os.path.join('plt_images', sample_token_str)
+            
+            # for .base bevencoder, the seg still can be displayed: only layer1 vehicle segmentation result.
+            # for si in range(len(semantic)):                
+            # #for si in range(semantic.shape[0]):
+            #     #print(len(semantic[0][1]))
+            #     #print(semantic[0][1])
+            #     plt.figure(figsize=(4, 2), dpi=400)
+            #     if not os.path.exists(pltimage_dir):
+            #         os.mkdir(pltimage_dir)
+                    
+            #     semantic_si=semantic[si].sigmoid().cpu()
+                
+            #     plt.imshow(semantic_si[0][0], alpha=0.6, cmap='Blues')
+            #     plt.xlim((0, 200))
+            #     plt.ylim((0, 200))
+            #     #plt.axis('off')
+            #     imname = f'segment_[0][0]_other_{sample_token_str}.jpg'
+            #     image_path = os.path.join(pltimage_dir, imname)                
+            #     print('saving', image_path)                
+            #     plt.savefig(image_path)
+            #     plt.close()
+                
+            #     #seg gt overall geometry
+            #     plt.imshow(semantic_gt[0][si],alpha=1)
+            #     plt.xlim(0, 200)
+            #     plt.ylim(0, 200)
+            #     plt.axis('off')               
+            #     imname = f'segmentGT_[0][0]_{sample_token_str}.jpg'
+            #     image_path = os.path.join(pltimage_dir, imname)                
+            #     print('saving', image_path)
+            #     plt.savefig(image_path)
+            #     plt.close()
+                                
+            #     #print(os.path.exists(pltimage_dir))
+                
+            #     pltimage_path = f'{pltimage_dir}/segmentation_{batchi:06}_{sample_token_str}_{si:03}.jpg'
+            #     plt.savefig(pltimage_path)
+                
+            #     # fig.clf()
+
+            #     plt.close()                
+            #     gc.collect()
+            # del semantic
+            # gc.collect()
+            
+            for si in range(semantic.shape[0]):
+                #print(len(semantic[0][1]))
+                #print(semantic[0][1])
+                plt.figure(figsize=(4, 2), dpi=400)
+                if not os.path.exists(pltimage_dir):
+                    os.mkdir(pltimage_dir)
+                    
+                # semantic[si]=semantic[si].sigmoid().cpu()
+                
+                plt.imshow(semantic[si][0], alpha=0.6, cmap='Blues')
+                plt.xlim((0, 200))
+                plt.ylim((0, 200))
+                #plt.axis('off')
+                imname = f'segment_[0][0]_other_{sample_token_str}.jpg'
+                image_path = os.path.join(pltimage_dir, imname)                
+                print('saving', image_path)                
+                plt.savefig(image_path)
+                plt.close()
+                
+                #seg gt overall geometry
+                plt.imshow(semantic_gt[si][0],alpha=1)
+                plt.xlim(0, 400)
+                plt.ylim(0, 200)
+                plt.axis('off')               
+                imname = f'segmentGT_[0][0]_{sample_token_str}.jpg'
+                image_path = os.path.join(pltimage_dir, imname)                
+                print('saving', image_path)
+                plt.savefig(image_path)
+                plt.close()
+                                
+                #print(os.path.exists(pltimage_dir))
+                
+                pltimage_path = f'{pltimage_dir}/segmentation_{batchi:06}_{sample_token_str}_{si:03}.jpg'
+                plt.savefig(pltimage_path)
+                
+                # fig.clf()
+
+                plt.close()                
+                gc.collect()
+            del semantic
+            gc.collect()
+            
 def vis_segmentation(model, val_loader):
     model.eval()
     with torch.no_grad():
@@ -318,7 +441,7 @@ def main(args):
     if torch.cuda.is_available():
         model.cuda()
         
-    vis_segmentation(model, val_loader)
+    vis_segmentation_lss(model, val_loader)
     vis_vector(model, val_loader, args.angle_class)
     # vis_segmentation(model, val_loader)
     

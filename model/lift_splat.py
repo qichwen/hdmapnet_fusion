@@ -11,11 +11,10 @@ from data.utils import gen_dx_bx
 
 # Jul.10
 #from .base import CamEncode, BevEncode
-from .base import BevEncode
-from model.models import CamEncode
-
-
-
+# from .base import BevEncode
+from model.models import CamEncode, BevEncode
+# from .tools import gen_dx_bx, cumsum_trick, QuickCumsum
+from .tools import gen_dx_bx, cumsum_trick
 
 def cumsum_trick(x, geom_feats, ranks):
     x = x.cumsum(0)
@@ -78,14 +77,16 @@ class LiftSplat(nn.Module):
         self.D, _, _, _ = self.frustum.shape
         self.camencode = CamEncode(self.D, self.camC, self.downsample)
         # self.camencode = CamEncode(self.camC)
-        self.bevencode = BevEncode(inC=self.camC, outC=4, instance_seg=instance_seg, embedded_dim=embedded_dim)
+        
+        #self.bevencode = BevEncode(inC=self.camC, outC=1, instance_seg=instance_seg, embedded_dim=embedded_dim)
+        self.bevencode = BevEncode(inC=self.camC, outC=4)
 
         # toggle using QuickCumsum vs. autograd
         self.use_quickcumsum = True
 
     def create_frustum(self):
         # make grid in image plane
-        ogfH, ogfW = self.grid_conf['final_dim']
+        ogfH, ogfW = self.data_aug_conf['final_dim']
         fH, fW = ogfH // self.downsample, ogfW // self.downsample
         ds = torch.arange(*self.grid_conf['dbound'], dtype=torch.float).view(-1, 1, 1).expand(-1, fH, fW)
         D, _, _ = ds.shape
@@ -136,8 +137,9 @@ class LiftSplat(nn.Module):
         
         x = x.view(B, N, self.camC, self.D, imH//self.downsample, imW//self.downsample)
         x = x.permute(0, 1, 3, 4, 5, 2)
-
+        # torch.Size([1, 6, 64, 41, 8, 22])
         return x
+        # torch.Size([1, 6, 41, 8, 22, 64])
 
     def voxel_pooling(self, geom_feats, x):
         B, N, D, H, W, C = x.shape
@@ -213,5 +215,10 @@ class LiftSplat(nn.Module):
             _type_: _description_
         """
         x = self.get_voxels(x, rots, trans, intrins, post_rots, post_trans)
-        # Jul.10        
-        return self.bevencode(x)
+        # torch.Size([1, 64, 200, 200])
+        
+        # Jul.10
+        #for get seg (1,4, 200, 400) input x should be torch.Size([1, 64, 200, 400]) 
+        # TODO above.
+              
+        return self.bevencode(x) 

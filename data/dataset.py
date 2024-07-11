@@ -204,6 +204,7 @@ class HDMapNetSemanticDataset(HDMapNetDataset):
         backward_oh_masks = label_onehot_encoding(backward_masks, self.angle_class+1)
         direction_masks = forward_oh_masks + backward_oh_masks
         direction_masks = direction_masks / direction_masks.sum(0)
+        # semantic_masks, instance_masks, direction_masks
         return semantic_masks, instance_masks, forward_masks, backward_masks, direction_masks
 
     def __getitem__(self, idx):

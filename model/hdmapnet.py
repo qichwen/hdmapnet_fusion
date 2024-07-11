@@ -52,6 +52,9 @@ class HDMapNet(nn.Module):
         self.downsample = 16
 
         dx, bx, nx = gen_dx_bx(data_conf['xbound'], data_conf['ybound'], data_conf['zbound'])
+        # dx: tensor([ 0.1500,  0.1500, 20.0000])
+        # bx: tensor([-29.9250, -14.9250,   0.0000])
+        # nx: tensor([400, 200,   1])
         final_H, final_W = nx[1].item(), nx[0].item()
 
         self.camencode = CamEncode(self.camC)
@@ -61,7 +64,10 @@ class HDMapNet(nn.Module):
 
         res_x = bv_size[1] * 3 // 4
         ipm_xbound = [-res_x, res_x, 4*res_x/final_W]
+        #[-60, 60, 0.6]
         ipm_ybound = [-res_x/2, res_x/2, 2*res_x/final_H]
+        #[-30.0, 30.0, 0.6]
+        
         self.ipm = IPM(ipm_xbound, ipm_ybound, N=6, C=self.camC, visual=True, extrinsic=True)
         self.up_sampler = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
         # self.up_sampler = nn.Upsample(scale_factor=5, mode='bilinear', align_corners=True)
@@ -214,7 +220,7 @@ class HDMapNet(nn.Module):
         
         Ks, RTs, post_RTs = self.get_Ks_RTs_and_post_RTs(intrins, rots, trans, post_rots, post_trans)
         topdown = self.ipm(x, Ks, RTs,samp_token, car_trans, yaw_pitch_roll, post_RTs)
-        
+        # torch.Size([1, 64, 100, 200])
         
         if draw:
             fm = torch.sum(topdown.squeeze(0),0)
@@ -227,6 +233,8 @@ class HDMapNet(nn.Module):
             plt.savefig(f'plt_images/{samp_token}/topdown_afterIPM.png', bbox_inches='tight')
             plt.close(a)
         topdown = self.up_sampler(topdown)
+        # torch.Size([1, 64, 200, 400])
+        
         if draw:        
             #store imgs of all 64 chns
             # for chn in range(topdown[0].shape[0]):
@@ -295,4 +303,4 @@ class HDMapNet(nn.Module):
               
         gc.collect()
         gc.collect()
-        return self.bevencode(topdown)
+        return self.bevencode(topdown) # torch.Size([1, 4, 200, 400])

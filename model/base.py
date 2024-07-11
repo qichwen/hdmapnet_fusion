@@ -10,8 +10,9 @@ import torch.nn.functional as F
 
 class Up(nn.Module):
     def __init__(self, in_channels, out_channels, scale_factor=2):
+        #bevencoder : Up(64 + 256, 256, scale_factor=4)
         super().__init__()
-
+        
         self.up = nn.Upsample(scale_factor=scale_factor, mode='bilinear',
                               align_corners=True)
 
@@ -148,7 +149,8 @@ class BevEncode(nn.Module):
         x = self.up2(x)
 
         if self.instance_seg:
-            x_embedded = self.up1_embedded(x2, x1)
+            # x2 torch.Size([1, 256, 25, 50]) |  # x1: torch.Size([1, 64, 100, 200])
+            x_embedded = self.up1_embedded(x2, x1)            
             x_embedded = self.up2_embedded(x_embedded)
         else:
             x_embedded = None

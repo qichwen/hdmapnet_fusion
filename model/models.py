@@ -10,10 +10,13 @@ from efficientnet_pytorch import EfficientNet
 from torchvision.models.resnet import resnet18
 
 from .tools import gen_dx_bx, cumsum_trick, QuickCumsum
+import torch.nn.functional as F
+
 
 
 class Up(nn.Module):
     def __init__(self, in_channels, out_channels, scale_factor=2):
+        # hmn-bevencoder : 320, 256, scale=4
         super().__init__()
 
         self.up = nn.Upsample(scale_factor=scale_factor, mode='bilinear',
@@ -29,8 +32,18 @@ class Up(nn.Module):
         )
 
     def forward(self, x1, x2):
+        # lss x1:torch.Size([1, 256, 25, 25]) | x2: torch.Size([1, 64, 100, 100])
+        # bevencoder x1: torch.Size([1, 64, 100, 200]) | x2: torch.Size([1, 64, 100, 200]) )
         x1 = self.up(x1)
+        # bevencoder x1: torch.Size([1, 256, 100, 200])
+        # lss x1:torch.Size([1, 4, 800, 800]
+        # if x1.size(2) != x2.size(2):
+        #     x1 = F.interpolate(x1, size=(x2.size(2), x2.size(3)), mode='bilinear', align_corners=True)
+        
+        # lss: x2:torch.Size([1, 64, 100, 100]) | x1:torch.Size([1, 256, 100, 100])
         x1 = torch.cat([x2, x1], dim=1)
+        # lss torch.Size([1, 320, 100, 100])
+        # 
         return self.conv(x1)
 
 
@@ -88,7 +101,7 @@ class CamEncode(nn.Module):
 
 
 class BevEncode(nn.Module):
-    def __init__(self, inC, outC):
+    def __init__(self, inC, outC, instance_seg=True, embedded_dim=16, direction_pred=True, direction_dim=37):
         super(BevEncode, self).__init__()
 
         trunk = resnet18(pretrained=False, zero_init_residual=True)
@@ -110,21 +123,79 @@ class BevEncode(nn.Module):
             nn.ReLU(inplace=True),
             nn.Conv2d(128, outC, kernel_size=1, padding=0),
         )
+        
+        self.instance_seg = instance_seg
+        if instance_seg:
+            self.up1_embedded = Up(64 + 256, 256, scale_factor=4)
+            self.up2_embedded = nn.Sequential(
+                nn.Upsample(scale_factor=2, mode='bilinear',
+                            align_corners=True),
+                nn.Conv2d(256, 128, kernel_size=3, padding=1, bias=False),
+                nn.BatchNorm2d(128),
+                nn.ReLU(inplace=True), 
+                #When inplace=True, the ReLU operation modifies the input tensor 
+                # directly, without creating a new tensor. 
+                # This can be more memory-efficient, especially for large tensors.
+                nn.Conv2d(128, embedded_dim, kernel_size=1, padding=0),
+            )
+
+        self.direction_pred = direction_pred
+        if direction_pred:
+            self.up1_direction = Up(64 + 256, 256, scale_factor=4)
+            self.up2_direction = nn.Sequential(
+                nn.Upsample(scale_factor=2, mode='bilinear',
+                            align_corners=True),
+                nn.Conv2d(256, 128, kernel_size=3, padding=1, bias=False),
+                nn.BatchNorm2d(128),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(128, direction_dim, kernel_size=1, padding=0),
+            )
+        
 
     def forward(self, x):
+               
+        # torch.Size([1, 64, 100, 200])
+        # lss: torch.Size([1, 64, 200, 200])
         x = self.conv1(x)
+        # torch.Size([1, 64, 50, 100])
+        # lss: torch.Size([1, 64, 100, 100])
         x = self.bn1(x)
+        # torch.Size([1, 64, 50, 100])
         x = self.relu(x)
-
+        # torch.Size([1, 64, 50, 100])
         x1 = self.layer1(x)
+        # x1 torch.Size([1, 64, 50, 100])
+        # lss: torch.Size([1, 64, 100, 100])
         x = self.layer2(x1)
-        x = self.layer3(x)
-
-        x = self.up1(x, x1)
+        # x torch.Size([1, 128, 25, 50])
+        # lss: torch.Size([1, 128, 50, 50])
+        x2 = self.layer3(x)
+        # x2 torch.Size([1, 256, 13, 25])
+        # lss: torch.Size([1, 256, 25, 25])
+        
+        #TODO: tf not matching issue! 
+        # lss: x2: torch.Size([1, 256, 25, 25]) | x1: torch.Size([1, 64, 100, 100])
+        x = self.up1(x2, x1)
+        # x2: torch.Size([1, 256, 13, 25]) | # x1: torch.Size([1, 64, 50, 100])
+        # lss: x torch.Size([1, 256, 100, 100])
+        
         x = self.up2(x)
+        # lss torch.Size([1, 4, 200, 200])
+        
+        if self.instance_seg:
+            x_embedded = self.up1_embedded(x2, x1) 
+            #torch.Size([1, 256, 100, 100])
+            x_embedded = self.up2_embedded(x_embedded)
+        else:
+            x_embedded = None
 
-        return x
+        if self.direction_pred:
+            x_direction = self.up1_embedded(x2, x1)
+            x_direction = self.up2_direction(x_direction)
+        else:
+            x_direction = None
 
+        return x, x_embedded, x_direction
 
 class LiftSplatShoot(nn.Module):
     def __init__(self, grid_conf, data_aug_conf, outC):
