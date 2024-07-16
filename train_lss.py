@@ -77,16 +77,18 @@ def train(args):
     counter = 0
     last_idx = len(train_loader) - 1
     best_iou = 0.0
+    
+    
     for epoch in range(args.nepochs):
         for batchi, (imgs, trans, rots, intrins, post_trans, post_rots, lidar_data, lidar_mask, car_trans,
                      yaw_pitch_roll, semantic_gt, instance_gt, direction_gt, sample_token) in enumerate(train_loader):
             # print(enumerate(train_loader))
             t0 = time()
             opt.zero_grad()
-            if torch.cuda.is_available():                
+            if torch.cuda.is_available():           
                 semantic, embedding, direction = model(imgs.cuda(), trans.cuda(), rots.cuda(), intrins.cuda(),
                                                     post_trans.cuda(), post_rots.cuda(), lidar_data.cuda(),
-                                                    lidar_mask.cuda(), car_trans.cuda(), yaw_pitch_roll.cuda())
+                                                    lidar_mask.cuda(), car_trans.cuda(), yaw_pitch_roll.cuda(),sample_token[0])
                 semantic_gt = semantic_gt.cuda().float()
                 instance_gt = instance_gt.cuda()
             else:
@@ -143,6 +145,7 @@ def train(args):
         logger.info(f"EVAL[{epoch:>2d}]:    "
                     f"IOU: {np.array2string(iou[1:].numpy(), precision=3, floatmode='fixed')}")
         
+        write_log(writer, iou, 'eval', counter)
         # Commit Jul-15, training logic improvement that only the best model sofar 'll be stored, Compute the overall IOU for the three subcategories
         overall_iou = (iou[1:][0] + iou[1:][1] + iou[1:][2]) / 3
         
