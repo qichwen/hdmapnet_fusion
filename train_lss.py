@@ -83,7 +83,7 @@ def train(args):
             # print(enumerate(train_loader))
             t0 = time()
             opt.zero_grad()
-            if torch.cuda.is_available():
+            if torch.cuda.is_available():                
                 semantic, embedding, direction = model(imgs.cuda(), trans.cuda(), rots.cuda(), intrins.cuda(),
                                                     post_trans.cuda(), post_rots.cuda(), lidar_data.cuda(),
                                                     lidar_mask.cuda(), car_trans.cuda(), yaw_pitch_roll.cuda())
@@ -156,6 +156,7 @@ def train(args):
             torch.save(best_model, model_name)
             logger.info(f"{model_name} saved")
             # Print the current epoch and IOU value
+            logger.info(f'The new best Epoch found !!! epoch num is : {epoch}, val iou: {iou[1:0]} , overall IOU: {overall_iou:.4f}')
             print(f'The new best Epoch found !!! epoch num is : {epoch}, val iou: {iou[1:0]} , overall IOU: {overall_iou:.4f}')
         
         model.train()
