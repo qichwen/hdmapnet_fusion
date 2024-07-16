@@ -34,13 +34,11 @@ denormalize_img = torchvision.transforms.Compose((
 # def img_transform(img, resize, resize_dims):
 #     post_rot2 = torch.eye(2)
 #     post_tran2 = torch.zeros(2)
-#     #[(0,0)]
+
 #     img = img.resize(resize_dims)
 
 #     rot_resize = torch.Tensor([[resize[0], 0],
 #                                [0, resize[1]]])
-#     """tensor([[0.2200, 0.0000],
-#                 [0.0000, 0.1422]])"""
 #     post_rot2 = rot_resize @ post_rot2
 #     post_tran2 = rot_resize @ post_tran2
 
@@ -57,18 +55,53 @@ def get_rot(h):
         [-np.sin(h), np.cos(h)],
     ])
 
-def img_transform(img, resize, resize_dims, crop, flip, rotate):
+# def img_transform(img, resize, resize_dims, crop, flip, rotate):
+#     post_rot2 = torch.eye(2)
+#     post_tran2 = torch.zeros(2)
+
+#     # adjust image
+#     img = img.resize(resize_dims)
+#     img = img.crop(crop)
+#     if flip:
+#         img = img.transpose(method=Image.FLIP_LEFT_RIGHT)
+#     img = img.rotate(rotate)
+
+#     # post-homography transformation
+#     post_rot2 *= resize
+#     post_tran2 -= torch.Tensor(crop[:2])
+#     if flip:
+#         A = torch.Tensor([[-1, 0], [0, 1]])
+#         b = torch.Tensor([crop[2] - crop[0], 0])
+#         post_rot2 = A.matmul(post_rot2)
+#         post_tran2 = A.matmul(post_tran2) + b
+#     A = get_rot(rotate/180*np.pi)
+#     b = torch.Tensor([crop[2] - crop[0], crop[3] - crop[1]]) / 2
+#     b = A.matmul(-b) + b
+#     post_rot2 = A.matmul(post_rot2)
+#     post_tran2 = A.matmul(post_tran2) + b
+
+#     post_tran = torch.zeros(3)
+#     post_rot = torch.eye(3)
+#     post_tran[:2] = post_tran2
+#     post_rot[:2, :2] = post_rot2
+#     return img, post_rot, post_tran
+
+def img_transform(img, resize, resize_dims, crop, flip, rotate, brightness_change):
     post_rot2 = torch.eye(2)
     post_tran2 = torch.zeros(2)
 
-    # adjust image
+    # 调整图像
     img = img.resize(resize_dims)
     img = img.crop(crop)
     if flip:
         img = img.transpose(method=Image.FLIP_LEFT_RIGHT)
     img = img.rotate(rotate)
 
-    # post-homography transformation
+    # 应用亮度变化
+    brightness_factor = 1.0 + brightness_change / 100.0
+    img = torchvision.transforms.functional.adjust_brightness(img, brightness_factor)
+
+    # 后同态变换
     post_rot2 *= resize
     post_tran2 -= torch.Tensor(crop[:2])
     if flip:
@@ -76,7 +109,7 @@ def img_transform(img, resize, resize_dims, crop, flip, rotate):
         b = torch.Tensor([crop[2] - crop[0], 0])
         post_rot2 = A.matmul(post_rot2)
         post_tran2 = A.matmul(post_tran2) + b
-    A = get_rot(rotate/180*np.pi)
+    A = get_rot(rotate / 180 * np.pi)
     b = torch.Tensor([crop[2] - crop[0], crop[3] - crop[1]]) / 2
     b = A.matmul(-b) + b
     post_rot2 = A.matmul(post_rot2)
@@ -87,4 +120,3 @@ def img_transform(img, resize, resize_dims, crop, flip, rotate):
     post_tran[:2] = post_tran2
     post_rot[:2, :2] = post_rot2
     return img, post_rot, post_tran
-
