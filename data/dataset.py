@@ -1,6 +1,6 @@
 import os
 import numpy as np
-import gc
+
 import torch
 from PIL import Image
 from pyquaternion import Quaternion
@@ -15,8 +15,6 @@ from .lidar import get_lidar_data
 from .image import normalize_img, img_transform
 from .utils import label_onehot_encoding
 from model.voxel import pad_or_trim_to_np
-from image_processer import visualizer_plt
-
 
 
 class HDMapNetDataset(Dataset):
@@ -83,35 +81,43 @@ class HDMapNetDataset(Dataset):
     #     return resize, resize_dims
 
     def sample_augmentation(self):
+        # 设置数据增强配置参数
         self.data_conf['resize_lim'] = (0.193, 0.225)
         self.data_conf['bot_pct_lim'] = (0.0, 0.22)
         self.data_conf['rand_flip'] = True
-        self.data_conf['rot_lim'] = (-5.4, -5.4)
+        self.data_conf['rot_lim'] = (-5.4, 5.4)
+        self.data_conf['brightness_lim'] = (-50, 50)  # 新增亮度变化范围
 
+        # 获取目标图像尺寸
         fH, fW = self.data_conf['image_size']
+
         if self.is_train:
+            # 训练模式
             resize = np.random.uniform(*self.data_conf['resize_lim'])
-            resize_dims = (int(IMG_ORIGIN_W*resize), int(IMG_ORIGIN_H*resize))
+            resize_dims = (int(IMG_ORIGIN_W * resize), int(IMG_ORIGIN_H * resize))
             newW, newH = resize_dims
-            crop_h = int((1 - np.random.uniform(*self.data_conf['bot_pct_lim']))*newH) - fH
+            crop_h = int((1 - np.random.uniform(*self.data_conf['bot_pct_lim'])) * newH) - fH
             crop_w = int(np.random.uniform(0, max(0, newW - fW)))
             crop = (crop_w, crop_h, crop_w + fW, crop_h + fH)
             flip = False
             if self.data_conf['rand_flip'] and np.random.choice([0, 1]):
                 flip = True
             rotate = np.random.uniform(*self.data_conf['rot_lim'])
+            brightness_change = np.random.uniform(*self.data_conf['brightness_lim'])
         else:
-            resize = max(fH/IMG_ORIGIN_H, fW/IMG_ORIGIN_W)
-            resize_dims = (int(IMG_ORIGIN_W*resize), int(IMG_ORIGIN_H*resize))
+            # 验证模式
+            resize = max(fH / IMG_ORIGIN_H, fW / IMG_ORIGIN_W)
+            resize_dims = (int(IMG_ORIGIN_W * resize), int(IMG_ORIGIN_H * resize))
             newW, newH = resize_dims
-            crop_h = int((1 - np.mean(self.data_conf['bot_pct_lim']))*newH) - fH
+            crop_h = int((1 - np.mean(self.data_conf['bot_pct_lim'])) * newH) - fH
             crop_w = int(max(0, newW - fW) / 2)
             crop = (crop_w, crop_h, crop_w + fW, crop_h + fH)
             flip = False
             rotate = 0
-        return resize, resize_dims, crop, flip, rotate
+            brightness_change = 0  # 验证模式下不改变亮度
 
-
+        return resize, resize_dims, crop, flip, rotate, brightness_change
+    
     def get_imgs(self, rec):
         imgs = []
         trans = []
@@ -119,44 +125,20 @@ class HDMapNetDataset(Dataset):
         intrins = []
         post_trans = []
         post_rots = []
-        counter = 1
-        window = {}
+
         for cam in CAMS:
-            # """
-            # Create a temporal window of frames
-            # :param frames: list of frames (camera images)
-            # :param window_size: int, number of frames in the window
-            # :return: tensor with shape (window_size, N, C, imH, imW)
-            # """
-            # window = []
-            # for i in range(len(frames) - window_size + 1):
-            #     window_frames = frames[i:i + window_size]
-            #     window_frames = torch.stack([frame['image'] for frame in window_frames])
-            #     window.append(window_frames)
-            
             samp = self.nusc.get('sample_data', rec['data'][cam])
             imgname = os.path.join(self.nusc.dataroot, samp['filename'])
             img = Image.open(imgname)
 
-            # resize, resize_dims = self.sample_augmentation()            
-            # img, post_rot, post_tran = img_transform(img, resize, resize_dims)
+            # 根据当前阶段获取数据增强参数
+            resize, resize_dims, crop, flip, rotate, brightness_change = self.sample_augmentation()
             
-            resize, resize_dims, crop, flip, rotate = self.sample_augmentation()
-            img, post_rot, post_tran = img_transform(img, resize, resize_dims, crop, flip, rotate)
-            
-            # sample_token = samp['sample_token']
-            # sample_channel = samp['channel']
-            # ts = samp['timestamp']
-            # visualizer_plt(img, counter, sample_token, sample_channel, ts, "before_norm")            
+            # 对图像进行变换
+            img, post_rot, post_tran = img_transform(img, resize, resize_dims, crop, flip, rotate, brightness_change)
 
-            # visualizer_plt(img, sample_token, sample_channel, ts, "before_norm", counter) 
-            # visualizer_plt(img, sample_token, sample_channel, ts, "before_norm")
-            
+            # 归一化图像
             img = normalize_img(img)
-            # visualizer_plt(img, counter, sample_token, sample_channel, ts, "imgafter_norm")            
-
-            # visualizer_plt(img, sample_token, sample_channel, ts, "imgafter_norm", counter)
-            # counter += 1
             post_trans.append(post_tran)
             post_rots.append(post_rot)
             imgs.append(img)
@@ -166,14 +148,12 @@ class HDMapNetDataset(Dataset):
             rots.append(torch.Tensor(Quaternion(sens['rotation']).rotation_matrix))
             intrins.append(torch.Tensor(sens['camera_intrinsic']))
         
-        #return torch.stack(window)
         return torch.stack(imgs), torch.stack(trans), torch.stack(rots), torch.stack(intrins), torch.stack(post_trans), torch.stack(post_rots)
 
     def get_vectors(self, rec):
         location = self.nusc.get('log', self.nusc.get('scene', rec['scene_token'])['log_token'])['location']
         ego_pose = self.nusc.get('ego_pose', self.nusc.get('sample_data', rec['data']['LIDAR_TOP'])['ego_pose_token'])
-        #Return list of map mask layers of the specified patch.
-        vectors = self.vector_map.gen_vectorized_samples(location, ego_pose['translation'], ego_pose['rotation'])        
+        vectors = self.vector_map.gen_vectorized_samples(location, ego_pose['translation'], ego_pose['rotation'])
         return vectors
 
     def __getitem__(self, idx):
@@ -182,9 +162,8 @@ class HDMapNetDataset(Dataset):
         lidar_data, lidar_mask = self.get_lidar(rec)
         car_trans, yaw_pitch_roll = self.get_ego_pose(rec)
         vectors = self.get_vectors(rec)
-        sample_token = rec.get('token')
 
-        return imgs, trans, rots, intrins, post_trans, post_rots, lidar_data, lidar_mask, car_trans, yaw_pitch_roll, vectors, sample_token
+        return imgs, trans, rots, intrins, post_trans, post_rots, lidar_data, lidar_mask, car_trans, yaw_pitch_roll, vectors
 
 
 class HDMapNetSemanticDataset(HDMapNetDataset):
@@ -194,7 +173,6 @@ class HDMapNetSemanticDataset(HDMapNetDataset):
         self.angle_class = data_conf['angle_class']
 
     def get_semantic_map(self, rec):
-        #Return list of map mask layers of the specified patch.
         vectors = self.get_vectors(rec)
         instance_masks, forward_masks, backward_masks = preprocess_map(vectors, self.patch_size, self.canvas_size, NUM_CLASSES, self.thickness, self.angle_class)
         semantic_masks = instance_masks != 0
@@ -204,7 +182,6 @@ class HDMapNetSemanticDataset(HDMapNetDataset):
         backward_oh_masks = label_onehot_encoding(backward_masks, self.angle_class+1)
         direction_masks = forward_oh_masks + backward_oh_masks
         direction_masks = direction_masks / direction_masks.sum(0)
-        # semantic_masks, instance_masks, direction_masks
         return semantic_masks, instance_masks, forward_masks, backward_masks, direction_masks
 
     def __getitem__(self, idx):
@@ -213,18 +190,15 @@ class HDMapNetSemanticDataset(HDMapNetDataset):
         lidar_data, lidar_mask = self.get_lidar(rec)
         car_trans, yaw_pitch_roll = self.get_ego_pose(rec)
         semantic_masks, instance_masks, _, _, direction_masks = self.get_semantic_map(rec)
-        sample_token = rec.get('token')
-        return imgs, trans, rots, intrins, post_trans, post_rots, lidar_data, lidar_mask, car_trans, yaw_pitch_roll, semantic_masks, instance_masks, direction_masks, sample_token
+        return imgs, trans, rots, intrins, post_trans, post_rots, lidar_data, lidar_mask, car_trans, yaw_pitch_roll, semantic_masks, instance_masks, direction_masks
 
 
 def semantic_dataset(version, dataroot, data_conf, bsz, nworkers):
     train_dataset = HDMapNetSemanticDataset(version, dataroot, data_conf, is_train=True)
-    val_dataset = HDMapNetSemanticDataset(version, dataroot, data_conf, is_train=False)
+    val_dataset = HDMapNetSemanticDataset(version, dataroot, data_conf, is_train=False,)
 
-    # Partition data into batches
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=bsz, shuffle=True, num_workers=nworkers, drop_last=True)
     val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=bsz, shuffle=False, num_workers=nworkers)
-    # print(val_loader)
     return train_loader, val_loader
 
 
@@ -238,6 +212,5 @@ if __name__ == '__main__':
     }
 
     dataset = HDMapNetSemanticDataset(version='v1.0-mini', dataroot='dataset/nuScenes', data_conf=data_conf, is_train=False)
-    for idx in range(dataset.__len__()):
-        imgs, trans, rots, intrins, post_trans, post_rots, lidar_data, lidar_mask, car_trans, yaw_pitch_roll, semantic_masks, instance_masks, direction_mask = dataset.__getitem__(idx)
-
+    for idx in range(len(dataset)):
+        imgs, trans, rots, intrins, post_trans, post_rots, lidar_data, lidar_mask, car_trans, yaw_pitch_roll, semantic_masks, instance_masks, direction_mask = dataset[idx]
