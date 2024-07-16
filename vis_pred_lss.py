@@ -112,11 +112,11 @@ def vis_segmentation_lss(model, val_loader):
             os.mkdir(segment_path)
         for batchi, (imgs, trans, rots, intrins, post_trans, post_rots, lidar_data, lidar_mask, car_trans, yaw_pitch_roll, semantic_gt, instance_gt, direction_gt, sample_token) in enumerate(val_loader):
             if torch.cuda.is_available():
-                semantic = model(imgs.cuda(), trans.cuda(), rots.cuda(), intrins.cuda(),
+                semantic, embedding, direction = model(imgs.cuda(), trans.cuda(), rots.cuda(), intrins.cuda(),
                                                     post_trans.cuda(), post_rots.cuda(), lidar_data.cuda(),
                                                     lidar_mask.cuda(), car_trans.cuda(), yaw_pitch_roll.cuda())
-                # semantic = semantic.softmax(1).cpu().numpy()
-                semantic = semantic.sigmoid().cpu()
+                semantic = semantic.softmax(1).cpu().numpy()
+                # semantic = semantic.sigmoid().cpu()
             else:
                 semantic, embedding, direction = model(imgs, trans, rots, intrins,
                                                     post_trans, post_rots, lidar_data,
@@ -138,19 +138,177 @@ def vis_segmentation_lss(model, val_loader):
             #semantic[semantic_gt < 0.1] = np.nan
             sample_token_str = sample_token[0]
             pltimage_dir = os.path.join('plt_images', sample_token_str)
+                        
+            for si in range(semantic.shape[0]):
+                #print(len(semantic[0][1]))
+                #print(semantic[0][1])
+                if not os.path.exists(pltimage_dir):
+                    os.mkdir(pltimage_dir)
+                plt.figure(figsize=(4, 2), dpi=400)
+                
+                plt.imshow(semantic[si][0], alpha=0.6)
+                plt.xlim(0, 200)
+                plt.ylim(0, 200)
+                plt.axis('off')
+                imname = f'segment_[0][0]_other_{sample_token_str}.jpg'
+                image_path = os.path.join(pltimage_dir, imname)                
+                print('saving', image_path)                
+                plt.savefig(image_path)
+                plt.close()
+                
+                plt.imshow(semantic[si][1], vmin=0, cmap='Blues', vmax=1, alpha=0.6)
+                plt.xlim(0, 200)
+                plt.ylim(0, 200)
+                plt.axis('off')
+                imname = f'segment_[0][1]_blues_{sample_token_str}.jpg'
+                image_path = os.path.join(pltimage_dir, imname)                
+                print('saving', image_path)
+                
+                plt.savefig(image_path)
+                plt.close()
+                
+                plt.imshow(semantic[si][2], vmin=0, cmap='Reds', vmax=1, alpha=0.6)
+                plt.xlim(0, 200)
+                plt.ylim(0, 200)
+                plt.axis('off')
+                imname = f'segment_[0][2]_reds_{sample_token_str}.jpg'
+                image_path = os.path.join(pltimage_dir, imname)                
+                print('saving', image_path)
+                plt.savefig(image_path)
+                plt.close()
+                
+                plt.imshow(semantic[si][3], vmin=0, cmap='Greens', vmax=1, alpha=0.6)
+                plt.xlim(0, 200)
+                plt.ylim(0, 200)
+                plt.axis('off')
+                imname = f'segment_[0][3]_greens_{sample_token_str}.jpg'
+                image_path = os.path.join(pltimage_dir, imname)                
+                print('saving', image_path)
+                plt.savefig(image_path)
+                plt.close()
+
+                #seg gt overall geometry
+                plt.imshow(semantic_gt[si][0],alpha=0.6)
+                plt.xlim(0, 200)
+                plt.ylim(0, 200)
+                plt.axis('off')
+                imname = f'segmentGT_[0][0]_{sample_token_str}.jpg'
+                image_path = os.path.join(pltimage_dir, imname)                
+                print('saving', image_path)
+                plt.savefig(image_path)
+                plt.close()
+                
+                # road / lane divider
+                plt.imshow(semantic_gt[si][1], alpha=0.6)
+                plt.xlim(0, 200)
+                plt.ylim(0, 200)
+                plt.axis('off')
+                imname = f'segmentGT_[0][1]_{sample_token_str}.jpg'
+                image_path = os.path.join(pltimage_dir, imname)                
+                print('saving', image_path)
+                plt.savefig(image_path)
+                plt.close()
+                
+                # pedestrain crossing
+                plt.imshow(semantic_gt[si][2], alpha=0.6)
+                plt.xlim(0, 200)
+                plt.ylim(0, 200)
+                plt.axis('off')
+                imname = f'segmentGT_[0][2]_{sample_token_str}.jpg'
+                image_path = os.path.join(pltimage_dir, imname)                
+                print('saving', image_path)
+                plt.savefig(image_path)
+                plt.close()
+                
+                # contour
+                plt.imshow(semantic_gt[si][3], alpha=0.6)
+                plt.xlim(0, 200)
+                plt.ylim(0, 200)
+                plt.axis('off')
+                imname = f'segmentGT_[0][3]_{sample_token_str}.jpg'
+                image_path = os.path.join(pltimage_dir, imname)                
+                print('saving', image_path)
+                plt.savefig(image_path)
+                plt.close()
+                
+                # fig.axes.get_xaxis().set_visible(False)
+                # fig.axes.get_yaxis().set_visible(False)
+                plt.xlim(0, 200)
+                plt.ylim(0, 200)
+                plt.axis('off')
+                #TODO: print seg gt
+                imname = f'eval_segment_{batchi:06}_{sample_token_str}_{si:03}.jpg'
+                image_path = os.path.join(segment_path, imname)
+                print('saving', image_path)
+                plt.savefig(image_path)
+                
+                #print(os.path.exists(pltimage_dir))
+                if not os.path.exists(pltimage_dir):
+                    os.makedir(pltimage_dir)
+                pltimage_path = f'{pltimage_dir}/segmentation_{batchi:06}_{sample_token_str}_{si:03}.jpg'
+                plt.savefig(pltimage_path)                
+                # fig.clf()
+                plt.close()                
+                gc.collect()
             
-            # for .base bevencoder, the seg still can be displayed: only layer1 vehicle segmentation result.
-            # for si in range(len(semantic)):                
-            # #for si in range(semantic.shape[0]):
+            plt.close()            
+            
+            del semantic
+            gc.collect()
+            # # for .base bevencoder, the seg still can be displayed: only layer1 vehicle segmentation result.
+            # # for si in range(len(semantic)):                
+            # # #for si in range(semantic.shape[0]):
+            # #     #print(len(semantic[0][1]))
+            # #     #print(semantic[0][1])
+            # #     plt.figure(figsize=(4, 2), dpi=400)
+            # #     if not os.path.exists(pltimage_dir):
+            # #         os.mkdir(pltimage_dir)
+                    
+            # #     semantic_si=semantic[si].sigmoid().cpu()
+                
+            # #     plt.imshow(semantic_si[0][0], alpha=0.6, cmap='Blues')
+            # #     plt.xlim((0, 200))
+            # #     plt.ylim((0, 200))
+            # #     #plt.axis('off')
+            # #     imname = f'segment_[0][0]_other_{sample_token_str}.jpg'
+            # #     image_path = os.path.join(pltimage_dir, imname)                
+            # #     print('saving', image_path)                
+            # #     plt.savefig(image_path)
+            # #     plt.close()
+                
+            # #     #seg gt overall geometry
+            # #     plt.imshow(semantic_gt[0][si],alpha=0.6)
+            # #     plt.xlim(0, 200)
+            # #     plt.ylim(0, 200)
+            # #     plt.axis('off')               
+            # #     imname = f'segmentGT_[0][0]_{sample_token_str}.jpg'
+            # #     image_path = os.path.join(pltimage_dir, imname)                
+            # #     print('saving', image_path)
+            # #     plt.savefig(image_path)
+            # #     plt.close()
+                                
+            # #     #print(os.path.exists(pltimage_dir))
+                
+            # #     pltimage_path = f'{pltimage_dir}/segmentation_{batchi:06}_{sample_token_str}_{si:03}.jpg'
+            # #     plt.savefig(pltimage_path)
+                
+            # #     # fig.clf()
+
+            # #     plt.close()                
+            # #     gc.collect()
+            # # del semantic
+            # # gc.collect()
+            
+            # for si in range(semantic.shape[0]):
             #     #print(len(semantic[0][1]))
             #     #print(semantic[0][1])
             #     plt.figure(figsize=(4, 2), dpi=400)
             #     if not os.path.exists(pltimage_dir):
             #         os.mkdir(pltimage_dir)
                     
-            #     semantic_si=semantic[si].sigmoid().cpu()
+            #     # semantic[si]=semantic[si].sigmoid().cpu()
                 
-            #     plt.imshow(semantic_si[0][0], alpha=0.6, cmap='Blues')
+            #     plt.imshow(semantic[si][0], alpha=0.6, cmap='Blues')
             #     plt.xlim((0, 200))
             #     plt.ylim((0, 200))
             #     #plt.axis('off')
@@ -161,7 +319,7 @@ def vis_segmentation_lss(model, val_loader):
             #     plt.close()
                 
             #     #seg gt overall geometry
-            #     plt.imshow(semantic_gt[0][si],alpha=1)
+            #     plt.imshow(semantic_gt[si][0],alpha=0.6)
             #     plt.xlim(0, 200)
             #     plt.ylim(0, 200)
             #     plt.axis('off')               
@@ -178,52 +336,7 @@ def vis_segmentation_lss(model, val_loader):
                 
             #     # fig.clf()
 
-            #     plt.close()                
-            #     gc.collect()
-            # del semantic
-            # gc.collect()
             
-            for si in range(semantic.shape[0]):
-                #print(len(semantic[0][1]))
-                #print(semantic[0][1])
-                plt.figure(figsize=(4, 2), dpi=400)
-                if not os.path.exists(pltimage_dir):
-                    os.mkdir(pltimage_dir)
-                    
-                # semantic[si]=semantic[si].sigmoid().cpu()
-                
-                plt.imshow(semantic[si][0], alpha=0.6, cmap='Blues')
-                plt.xlim((0, 200))
-                plt.ylim((0, 200))
-                #plt.axis('off')
-                imname = f'segment_[0][0]_other_{sample_token_str}.jpg'
-                image_path = os.path.join(pltimage_dir, imname)                
-                print('saving', image_path)                
-                plt.savefig(image_path)
-                plt.close()
-                
-                #seg gt overall geometry
-                plt.imshow(semantic_gt[si][0],alpha=1)
-                plt.xlim(0, 400)
-                plt.ylim(0, 200)
-                plt.axis('off')               
-                imname = f'segmentGT_[0][0]_{sample_token_str}.jpg'
-                image_path = os.path.join(pltimage_dir, imname)                
-                print('saving', image_path)
-                plt.savefig(image_path)
-                plt.close()
-                                
-                #print(os.path.exists(pltimage_dir))
-                
-                pltimage_path = f'{pltimage_dir}/segmentation_{batchi:06}_{sample_token_str}_{si:03}.jpg'
-                plt.savefig(pltimage_path)
-                
-                # fig.clf()
-
-                plt.close()                
-                gc.collect()
-            del semantic
-            gc.collect()
             
 def vis_segmentation(model, val_loader):
     model.eval()
@@ -263,10 +376,12 @@ def vis_segmentation(model, val_loader):
             for si in range(semantic.shape[0]):
                 #print(len(semantic[0][1]))
                 #print(semantic[0][1])
+                if not os.path.exists(pltimage_dir):
+                    os.mkdir(pltimage_dir)
                 plt.figure(figsize=(4, 2), dpi=400)
                 
-                plt.imshow(semantic[si][0], alpha=1)
-                plt.xlim(0, 400)
+                plt.imshow(semantic[si][0], alpha=0.6)
+                plt.xlim(0, 200)
                 plt.ylim(0, 200)
                 plt.axis('off')
                 imname = f'segment_[0][0]_other_{sample_token_str}.jpg'
@@ -275,8 +390,8 @@ def vis_segmentation(model, val_loader):
                 plt.savefig(image_path)
                 plt.close()
                 
-                plt.imshow(semantic[si][1], vmin=0, cmap='Blues', vmax=1, alpha=1)
-                plt.xlim(0, 400)
+                plt.imshow(semantic[si][1], vmin=0, cmap='Blues', vmax=1, alpha=0.6)
+                plt.xlim(0, 200)
                 plt.ylim(0, 200)
                 plt.axis('off')
                 imname = f'segment_[0][1]_blues_{sample_token_str}.jpg'
@@ -286,8 +401,8 @@ def vis_segmentation(model, val_loader):
                 plt.savefig(image_path)
                 plt.close()
                 
-                plt.imshow(semantic[si][2], vmin=0, cmap='Reds', vmax=1, alpha=1)
-                plt.xlim(0, 400)
+                plt.imshow(semantic[si][2], vmin=0, cmap='Reds', vmax=1, alpha=0.6)
+                plt.xlim(0, 200)
                 plt.ylim(0, 200)
                 plt.axis('off')
                 imname = f'segment_[0][2]_reds_{sample_token_str}.jpg'
@@ -296,8 +411,8 @@ def vis_segmentation(model, val_loader):
                 plt.savefig(image_path)
                 plt.close()
                 
-                plt.imshow(semantic[si][3], vmin=0, cmap='Greens', vmax=1, alpha=1)
-                plt.xlim(0, 400)
+                plt.imshow(semantic[si][3], vmin=0, cmap='Greens', vmax=1, alpha=0.6)
+                plt.xlim(0, 200)
                 plt.ylim(0, 200)
                 plt.axis('off')
                 imname = f'segment_[0][3]_greens_{sample_token_str}.jpg'
@@ -307,8 +422,8 @@ def vis_segmentation(model, val_loader):
                 plt.close()
 
                 #seg gt overall geometry
-                plt.imshow(semantic_gt[si][0],alpha=1)
-                plt.xlim(0, 400)
+                plt.imshow(semantic_gt[si][0],alpha=0.6)
+                plt.xlim(0, 200)
                 plt.ylim(0, 200)
                 plt.axis('off')
                 imname = f'segmentGT_[0][0]_{sample_token_str}.jpg'
@@ -318,8 +433,8 @@ def vis_segmentation(model, val_loader):
                 plt.close()
                 
                 # road / lane divider
-                plt.imshow(semantic_gt[si][1], alpha=1)
-                plt.xlim(0, 400)
+                plt.imshow(semantic_gt[si][1], alpha=0.6)
+                plt.xlim(0, 200)
                 plt.ylim(0, 200)
                 plt.axis('off')
                 imname = f'segmentGT_[0][1]_{sample_token_str}.jpg'
@@ -329,8 +444,8 @@ def vis_segmentation(model, val_loader):
                 plt.close()
                 
                 # pedestrain crossing
-                plt.imshow(semantic_gt[si][2], alpha=1)
-                plt.xlim(0, 400)
+                plt.imshow(semantic_gt[si][2], alpha=0.6)
+                plt.xlim(0, 200)
                 plt.ylim(0, 200)
                 plt.axis('off')
                 imname = f'segmentGT_[0][2]_{sample_token_str}.jpg'
@@ -340,8 +455,8 @@ def vis_segmentation(model, val_loader):
                 plt.close()
                 
                 # contour
-                plt.imshow(semantic_gt[si][3], alpha=1)
-                plt.xlim(0, 400)
+                plt.imshow(semantic_gt[si][3], alpha=0.6)
+                plt.xlim(0, 200)
                 plt.ylim(0, 200)
                 plt.axis('off')
                 imname = f'segmentGT_[0][3]_{sample_token_str}.jpg'
@@ -352,7 +467,7 @@ def vis_segmentation(model, val_loader):
                 
                 # fig.axes.get_xaxis().set_visible(False)
                 # fig.axes.get_yaxis().set_visible(False)
-                plt.xlim(0, 400)
+                plt.xlim(0, 200)
                 plt.ylim(0, 200)
                 plt.axis('off')
                 #TODO: print seg gt
@@ -442,7 +557,8 @@ def main(args):
         model.cuda()
         
     vis_segmentation_lss(model, val_loader)
-    vis_vector(model, val_loader, args.angle_class)
+    # vis_segmentation(model, val_loader)
+    #vis_vector(model, val_loader, args.angle_class)
     # vis_segmentation(model, val_loader)
     
 

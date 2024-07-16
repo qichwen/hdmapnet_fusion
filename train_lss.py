@@ -76,6 +76,7 @@ def train(args):
     model.train()
     counter = 0
     last_idx = len(train_loader) - 1
+    best_iou = 0.0
     for epoch in range(args.nepochs):
         for batchi, (imgs, trans, rots, intrins, post_trans, post_rots, lidar_data, lidar_mask, car_trans,
                      yaw_pitch_roll, semantic_gt, instance_gt, direction_gt, sample_token) in enumerate(train_loader):
@@ -141,11 +142,22 @@ def train(args):
         iou = eval_iou(model, val_loader)
         logger.info(f"EVAL[{epoch:>2d}]:    "
                     f"IOU: {np.array2string(iou[1:].numpy(), precision=3, floatmode='fixed')}")
-
-        write_log(writer, iou, 'eval', counter)
-        model_name = os.path.join(args.logdir, f"model{epoch}.pt")
-        torch.save(model.state_dict(), model_name)
-        logger.info(f"{model_name} saved")
+        
+        # Commit Jul-15, training logic improvement that only the best model sofar 'll be stored, Compute the overall IOU for the three subcategories
+        overall_iou = (iou[1:][0] + iou[1:][1] + iou[1:][2]) / 3
+        
+        # Check if this is the best model so far
+        if overall_iou > best_iou:
+            best_model = model.state_dict()  # Save the model state
+            best_iou = overall_iou
+            best_epoch = epoch  # Save the epoch number
+            write_log(writer, iou, 'eval', counter)
+            model_name = os.path.join(args.logdir, f"model{epoch}.pt")
+            torch.save(best_model, model_name)
+            logger.info(f"{model_name} saved")
+            # Print the current epoch and IOU value
+            print(f'The new best Epoch found !!! epoch num is : {epoch}, val iou: {iou[1:0]} , overall IOU: {overall_iou:.4f}')
+        
         model.train()
 
         sched.step()
@@ -167,8 +179,8 @@ if __name__ == '__main__':
     parser.add_argument("--nepochs", type=int, default=50)
     parser.add_argument("--max_grad_norm", type=float, default=5.0)
     parser.add_argument("--pos_weight", type=float, default=2.13)
-    parser.add_argument("--bsz", type=int, default=1)
-    parser.add_argument("--nworkers", type=int, default=0)
+    parser.add_argument("--bsz", type=int, default=8)
+    parser.add_argument("--nworkers", type=int, default=8)
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--weight_decay", type=float, default=1e-7)
 
