@@ -196,7 +196,7 @@ class LiftSplat(nn.Module):
         return x
  
     # def forward(self, points, points_mask, x, rots, trans, intrins, post_rots, post_trans, translation, yaw_pitch_roll):
-    def forward(self, x, trans, rots, intrins, post_trans, post_rots, lidar_data, lidar_mask, translation, yaw_pitch_roll):
+    def forward(self, x, trans, rots, intrins, post_trans, post_rots, lidar_data, lidar_mask, translation, yaw_pitch_roll, sample_token):
         """_summary_
             model(imgs.cuda(), trans.cuda(), rots.cuda(), intrins.cuda(),
                     post_trans.cuda(), post_rots.cuda(), lidar_data.cuda(),

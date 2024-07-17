@@ -80,6 +80,8 @@ def train(args):
 
     
     for epoch in range(args.nepochs):
+        # for batchi, (imgs, trans, rots, intrins, post_trans, post_rots, lidar_data, lidar_mask, car_trans,
+        #             yaw_pitch_roll, semantic_gt, instance_gt, direction_gt, sample_token) in enumerate(train_loader):
         for batchi, (imgs, trans, rots, intrins, post_trans, post_rots, lidar_data, lidar_mask, car_trans,
                      yaw_pitch_roll, semantic_gt, instance_gt, direction_gt, sample_token) in enumerate(train_loader):
             # print(enumerate(train_loader))
@@ -183,8 +185,8 @@ if __name__ == '__main__':
     parser.add_argument("--nepochs", type=int, default=50)
     parser.add_argument("--max_grad_norm", type=float, default=5.0)
     parser.add_argument("--pos_weight", type=float, default=2.13)
-    parser.add_argument("--bsz", type=int, default=8)
-    parser.add_argument("--nworkers", type=int, default=8)
+    parser.add_argument("--bsz", type=int, default=6)
+    parser.add_argument("--nworkers", type=int, default=6)
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--weight_decay", type=float, default=1e-7)
 

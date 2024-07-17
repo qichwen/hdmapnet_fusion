@@ -190,8 +190,9 @@ class HDMapNetSemanticDataset(HDMapNetDataset):
         lidar_data, lidar_mask = self.get_lidar(rec)
         car_trans, yaw_pitch_roll = self.get_ego_pose(rec)
         semantic_masks, instance_masks, _, _, direction_masks = self.get_semantic_map(rec)
-        return imgs, trans, rots, intrins, post_trans, post_rots, lidar_data, lidar_mask, car_trans, yaw_pitch_roll, semantic_masks, instance_masks, direction_masks
-
+        sample_token = rec.get('token')
+        return imgs, trans, rots, intrins, post_trans, post_rots, lidar_data, lidar_mask, car_trans, yaw_pitch_roll, semantic_masks, instance_masks, direction_masks,sample_token
+        
 
 def semantic_dataset(version, dataroot, data_conf, bsz, nworkers):
     train_dataset = HDMapNetSemanticDataset(version, dataroot, data_conf, is_train=True)
