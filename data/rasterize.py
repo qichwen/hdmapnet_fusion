@@ -8,7 +8,7 @@ from shapely.geometry import LineString, box
 
 
 def get_patch_coord(patch_box, patch_angle=0.0):
-    patch_x, patch_y, patch_h, patch_w = patch_box
+    patch_x, patch_y, patch_h, patch_w = patch_box # 0 0 100 100
 
     x_min = patch_x - patch_w / 2.0
     y_min = patch_y - patch_h / 2.0
@@ -47,12 +47,14 @@ def mask_for_lines(lines, mask, thickness, idx, type='index', angle_class=36):
 def line_geom_to_mask(layer_geom, confidence_levels, local_box, canvas_size, thickness, idx, type='index', angle_class=36):
     patch_x, patch_y, patch_h, patch_w = local_box
 
-    patch = get_patch_coord(local_box)
+    #local_box 30,60
+    # local_box lss, 0,0,100,100
+    patch = get_patch_coord(local_box)     #(-50.0, -50.0, 50.0, 50.0)
 
-    canvas_h = canvas_size[0]
-    canvas_w = canvas_size[1]
-    scale_height = canvas_h / patch_h
-    scale_width = canvas_w / patch_w
+    canvas_h = canvas_size[0] # 100 / 0.5 200
+    canvas_w = canvas_size[1] #100 / 0.5 200
+    scale_height = canvas_h / patch_h # 2
+    scale_width = canvas_w / patch_w # 2
 
     trans_x = -patch_x + patch_w / 2.0
     trans_y = -patch_y + patch_h / 2.0

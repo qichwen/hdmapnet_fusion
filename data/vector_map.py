@@ -47,8 +47,9 @@ class VectorizedLocalMap(object):
     def gen_vectorized_samples(self, location, ego2global_translation, ego2global_rotation):
         map_pose = ego2global_translation[:2]
         rotation = Quaternion(ego2global_rotation)
-
-        patch_box = (map_pose[0], map_pose[1], self.patch_size[0], self.patch_size[1])
+        # self.patch_size h30, w60
+        # self.patch_size h100, w100
+        patch_box = (map_pose[0], map_pose[1], self.patch_size[0], self.patch_size[1]) # 
         patch_angle = quaternion_yaw(rotation) / np.pi * 180
 
         line_geom = self.get_map_geom(patch_box, patch_angle, self.line_classes, location)

@@ -28,8 +28,8 @@ import json
 class HDMapNetDataset(Dataset):
     def __init__(self, version, dataroot, data_conf, is_train):
         super(HDMapNetDataset, self).__init__()
-        patch_h = data_conf['ybound'][1] - data_conf['ybound'][0]
-        patch_w = data_conf['xbound'][1] - data_conf['xbound'][0]
+        patch_h = data_conf['ybound'][1] - data_conf['ybound'][0] #50 - -50
+        patch_w = data_conf['xbound'][1] - data_conf['xbound'][0] #50 - -50
         canvas_h = int(patch_h / data_conf['ybound'][2])
         canvas_w = int(patch_w / data_conf['xbound'][2])
         self.is_train = is_train

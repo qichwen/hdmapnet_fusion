@@ -173,7 +173,7 @@ class HDMapNetSemanticDataset(HDMapNetDataset):
         self.angle_class = data_conf['angle_class']
 
     def get_semantic_map(self, rec):
-        vectors = self.get_vectors(rec)
+        vectors = self.get_vectors(rec) #fetch the geom from map based on only the patchsize  100,100 -lss
         instance_masks, forward_masks, backward_masks = preprocess_map(vectors, self.patch_size, self.canvas_size, NUM_CLASSES, self.thickness, self.angle_class)
         semantic_masks = instance_masks != 0
         semantic_masks = torch.cat([(~torch.any(semantic_masks, axis=0)).unsqueeze(0), semantic_masks])

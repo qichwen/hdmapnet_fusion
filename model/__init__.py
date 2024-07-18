@@ -28,7 +28,7 @@ def get_model(method, data_conf, instance_seg=True, embedded_dim=16, direction_p
         }
         cams = ['CAM_FRONT_LEFT', 'CAM_FRONT', 'CAM_FRONT_RIGHT',
                              'CAM_BACK_LEFT', 'CAM_BACK', 'CAM_BACK_RIGHT']
-        data_aug_conf = {
+        data_aug_conf = {#not used except 'final_dim' below
                     'resize_lim': resize_lim,
                     'final_dim': final_dim,
                     'rot_lim': rot_lim,
@@ -36,7 +36,7 @@ def get_model(method, data_conf, instance_seg=True, embedded_dim=16, direction_p
                     'rand_flip': rand_flip,
                     'bot_pct_lim': bot_pct_lim,
                     'cams': cams,
-                    'Ncams': 5,
+                    'Ncams': 5, 
                 }
         model = LiftSplat(grid_conf, data_aug_conf, outC=4, instance_seg=instance_seg, embedded_dim=embedded_dim)
     elif method == 'HDMapNet_cam':
