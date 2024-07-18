@@ -15,6 +15,7 @@ from .lidar import get_lidar_data
 from .image import normalize_img, img_transform
 from .utils import label_onehot_encoding
 from model.voxel import pad_or_trim_to_np
+from img_tools import * # Jiang's change
 
 
 class HDMapNetDataset(Dataset):
