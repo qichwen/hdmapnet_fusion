@@ -137,6 +137,20 @@ class HDMapNetDataset(Dataset):
             # 对图像进行变换
             img, post_rot, post_tran = img_transform(img, resize, resize_dims, crop, flip, rotate, brightness_change)
 
+            # # 将 PIL 图像转换为 NumPy 数组
+            # img_np = np.array(img)
+            # img_np = isp_module(img_np)
+            # # img_np = colour_norm(img_np)
+            # # img_np = gaussian_blur(img_np)
+            # # if cam == 'CAM_FRONT' or cam == 'CAM_FRONT_LEFT' or cam == 'CAM_FRONT_RIGHT':
+            # #     img_np = adjust_brightness_contrast(img_np, alpha=1, beta=55)
+            # # elif cam == 'CAM_BACK' or cam == 'CAM_BACK_LEFT' or cam == 'CAM_BACK_RIGHT':
+            # #     img_np = adjust_brightness_contrast(img_np, alpha=1, beta=10)
+            # # 应用 mask 函数
+            # # img_np = mask(img_np)
+            # # 将处理后的 NumPy 数组转换回 PIL 图像
+            # img = Image.fromarray(img_np)
+
             # 归一化图像
             img = normalize_img(img)
             post_trans.append(post_tran)
