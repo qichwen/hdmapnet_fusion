@@ -2,8 +2,9 @@ import math
 import numpy as np
 from scipy.spatial.transform import Rotation as Rot
 
-#all the MB sensor extrinsic
-#!!! 2024-Jun 's version calibration result for rotation part:
+"""
+aiming for transit the extrinsic euler to quaternion out of 
+#!!! 2024-Jun 's version calibration result for rotation part:"""
 F120 = {
 'fxn': 0.7478020191192627,
 'fyn': 0.39888936281204224,
@@ -12,6 +13,7 @@ F120 = {
 'fyc': 0.023205328732728958,
 'fzc': 0.17563281953334808,
 }     
+
 
 FL120 = {
 'fxn': 0.6823626160621643,
@@ -40,15 +42,15 @@ RL = {
 'fzc': 0.4732438027858734,
 }
 
-
 RR = {
 'fxn': 1.896492600440979,
-'fyn': 0.7620489597320557,
+'fyn': -0.2010795921087265,
 'fzn': -151.93609619140625,
 'fxc': -0.18918843567371368,
 'fyc': 0.7620489597320557,
 'fzc': 0.1966867595911026
 }
+
 
 R30 = {
 'fxn': -2.2612860202789307,

@@ -505,25 +505,27 @@ if __name__ == '__main__':
     
     videopath = "/home/qichen/projects/Trace/Mzone_hwy/"
     log_file_path = "/home/qichen/projects/Trace/Mzone_hwy/logs"
-    cut_videos(videopath, scene_num, ts_start, ts_end, log_file_path)
+    
+    """raw video cut"""
+    # cut_videos(videopath, scene_num, ts_start, ts_end, log_file_path)
     
     """frame extracter"""
-    process_videos(args.v_path, args.sceneid, args.startts, args.endts) 
+    # process_videos(args.v_path, args.sceneid, args.startts, args.endts) 
     # input 
     
     """frame pre-processer and transit to sample/"""
     """CAMS_PMAP = {
     'CAM_FRONT_LEFT': 'camera_cross_left_120fov_frames',
-    # 'CAM_FRONT':'camera_front_wide_120fov_frames',
-    'CAM_FRONT':'camera_front_tele_30fov_frames',
+    'CAM_FRONT':'camera_front_wide_120fov_frames',
+     # 'CAM_FRONT':'camera_front_tele_30fov_frames',
     'CAM_FRONT_RIGHT':'camera_cross_right_120fov_frames',
     'CAM_BACK_LEFT':'camera_rear_left_70fov_frames',
     'CAM_BACK':'camera_rear_tele_30fov_frames',
     'CAM_BACK_RIGHT':'camera_rear_right_70fov_frames',
     }
     """
-    cam_maps= imgs_preprocessor(args.modinput_path, args.source_path, args.sceneid, crop = False)
-    #print(cam_maps)    
+    imgs_preprocessor(args.modinput_path, args.source_path, args.sceneid, crop=False)
+    # print(cam_maps)    
     
     ingester(args.sceneid, args.startts, args.endts, args.output_dir, args.output_json_path, args.modinput_path)
     

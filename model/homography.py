@@ -222,9 +222,9 @@ def ipm_from_parameters(image, xyz, K, RT, samp_token, target_h, target_w, extri
     #6, 100, 200, 64 
     
     #TODO: for visual
-    for view in range(1, pixel_coords.shape[0]+1):
-        image3 = image2[view-1].detach().cpu().numpy().transpose(2,0,1)
-        visualizer_plt(image3, view , samp_token, const.CAMS[view-1],'', "IPM_bilinear_sampler", 'plt_images/tempfusion/')     
+    # for view in range(1, pixel_coords.shape[0]+1):
+    #     image3 = image2[view-1].detach().cpu().numpy().transpose(2,0,1)
+    #     visualizer_plt(image3, view , samp_token, const.CAMS[view-1],'', "IPM_bilinear_sampler", 'plt_images/tempfusion/')     
 
     return image2
 

@@ -119,11 +119,12 @@ class HDMapNet(nn.Module):
         #TODO: controll by param
         draw = False
         
-        imgs_path = os.path.join('plt_images', samp_token)
-        if not os.path.exists(imgs_path):
-            os.makedirs(imgs_path)
+        
         
         if draw:
+            imgs_path = os.path.join('plt_images', samp_token)
+            if not os.path.exists(imgs_path):
+                os.makedirs(imgs_path)
             fig = plt.figure(figsize=(60, 40))
             file_path = f"plt_images/{samp_token}"             
             raw_imgs = sorted([f for f in os.listdir(file_path) if (((('fm_imgafter_norm') in f) or ('pvimg_before_norm' in f)) and f.endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif')))])  

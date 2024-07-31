@@ -57,8 +57,8 @@ def visualizer_plt(x,counter, sample_token, sample_channel, ts, step, imgs_dir =
     if not os.path.exists(imgs_path):
         os.makedirs(imgs_path)
         
-    if not os.path.exists(imgs_dir):
-        os.makedirs(imgs_dir)
+    # if not os.path.exists(imgs_dir):
+    #     os.makedirs(imgs_dir)
         
     if isinstance(x, Image.Image):
         # plt.axis('off')

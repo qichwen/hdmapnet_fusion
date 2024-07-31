@@ -16,6 +16,7 @@ from .image import normalize_img, img_transform
 from .utils import label_onehot_encoding
 from model.voxel import pad_or_trim_to_np
 from img_tools import * # Jiang's change
+from image_processer import visualizer_plt
 
 
 class HDMapNetDataset(Dataset):
@@ -85,7 +86,7 @@ class HDMapNetDataset(Dataset):
         # 设置数据增强配置参数
         self.data_conf['resize_lim'] = (0.193, 0.225)
         self.data_conf['bot_pct_lim'] = (0.0, 0.22)
-        self.data_conf['rand_flip'] = True
+        self.data_conf['rand_flip'] = False
         self.data_conf['rot_lim'] = (-5.4, 5.4)
         self.data_conf['brightness_lim'] = (-50, 50)  # 新增亮度变化范围
 
@@ -127,6 +128,7 @@ class HDMapNetDataset(Dataset):
         intrins = []
         post_trans = []
         post_rots = []
+        counter = 1
 
         for cam in CAMS:
             samp = self.nusc.get('sample_data', rec['data'][cam])
@@ -155,8 +157,25 @@ class HDMapNetDataset(Dataset):
                 # 将处理后的 NumPy 数组转换回 PIL 图像
                 img = Image.fromarray(img_np)
 
-            # 归一化图像
+            sample_token = samp['sample_token']
+            sample_channel = samp['channel']
+            ts = samp['timestamp']
+            # visualizer_plt(img, counter, sample_token, sample_channel, ts, "before_norm")
             img = normalize_img(img)
+            
+            # img = normalize_img(img, cam_map[cam])
+            # 创建ToTensor转换实例  
+            # to_tensor_transform = torchvision.transforms.ToTensor()                      
+            
+            # normalize_transform = torchvision.transforms.Normalize(mean=cam_map[cam][0], std=cam_map[cam][1])              
+            # 首先将图像转换为Tensor  
+            # img = to_tensor_transform(img)              
+            # # 然后对Tensor进行归一化  
+            # img = normalize_transform(img)     
+            # 3, 128, 352  
+            
+            
+            # visualizer_plt(img, counter, sample_token, sample_channel, ts, "imgafter_norm")                             
             post_trans.append(post_tran)
             post_rots.append(post_rot)
             imgs.append(img)

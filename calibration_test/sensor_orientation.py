@@ -13,7 +13,6 @@ def main(args):
     # Feb params
     if "12-2023" in version:
         #Feb-2024 Extrinsic parameters of the 6 cameras
-
         title = "Camera layout, with ext-param exported from 12-2023"
         Rots = [
         [-89.32062446116468, 0.07854765653610787, -22.521672904491428],
@@ -31,7 +30,7 @@ def main(args):
         [-0.8957435488700867,0.2945128083229065,1.399481177330017],
         [-0.9570000171661377,-0.8299999833106995,0.8299999833106995]
         ]
-        fov = [120, 30, 120, 70, 30, 70]
+        fov = [120, 120, 120, 70, 30, 70]
     elif "6-2023" in version: # Jun trace
         #Jun-2024 Extrinsic parameters of the 6 cameras
         title = "Camera layout, with ext-param exported from 6-2023, better one."
@@ -52,7 +51,7 @@ def main(args):
         [-0.8830921053886414, 0.3092159330844879, 1.3925449848175049],
         [2.1475114822387695, -1.0130553245544434, 1.1678566932678223]
         ]
-        fov = [120, 30, 120, 70, 30, 70]
+        fov = [120, 120, 120, 70, 30, 70]
     elif "feb24rots_trans-nusc" in version: # Jun trace
         #Jun-2024 Extrinsic parameters of the 6 cameras
         title = "Camera layout, feb2024's rots params and nuscene's trans params, best one sofar."

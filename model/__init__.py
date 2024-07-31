@@ -28,7 +28,7 @@ def get_model(method, data_conf, instance_seg=True, embedded_dim=16, direction_p
         }
         cams = ['CAM_FRONT_LEFT', 'CAM_FRONT', 'CAM_FRONT_RIGHT',
                              'CAM_BACK_LEFT', 'CAM_BACK', 'CAM_BACK_RIGHT']
-        data_aug_conf = {#not used except 'final_dim' below
+        data_aug_conf = {#not used except 'final_dim'
                     'resize_lim': resize_lim,
                     'final_dim': final_dim,
                     'rot_lim': rot_lim,

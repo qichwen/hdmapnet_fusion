@@ -22,6 +22,95 @@ def onehot_encoding(logits, dim=1):
     one_hot.scatter_(dim, max_idx, 1)
     return one_hot
 
+
+def vis_resutls_lss(args, img_name, batchi, sample_token_str, pltimage_result_dir):
+    batchi = 0
+    # cluster imge path
+    img_path = f'{pltimage_result_dir}/{sample_token_str}/'
+    # cluster_path = os.path.join(img_path, 'image_cluster')
+    if not os.path.exists(img_path):
+        os.mkdir(img_path)
+    smaple_token = sample_token_str
+    # samples = read_json_file(args.image_json)
+    # for smaple_token in samples:
+    #TODO: to add try exception logic; - done
+    new_cam_image = Image.new('RGB', (10000, 5000))
+
+    BEV_topdown = [f for f in os.listdir(img_path) if (f.startswith('topdown_afterIPM_Usamp_')) and f.endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif'))]
+    if len(BEV_topdown) != 0:        
+        BEV_topdown = os.path.join(img_path, BEV_topdown[0])
+        bev_img_cam_ori = Image.open(BEV_topdown)
+        bev_img_cam = bev_img_cam_ori.resize((2200, 1200))
+        new_cam_image.paste(bev_img_cam, (0, 0))
+    
+    segment_img = [f for f in os.listdir(img_path) if (f.startswith('segment_LSS_addedContour')) and f.endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif'))]
+    if len(segment_img) != 0:     
+        segment_img = os.path.join(img_path, segment_img[0])
+        seg_img_cam_ori = Image.open(segment_img)
+        seg_img_cam = seg_img_cam_ori.resize((2200, 1200))
+        new_cam_image.paste(seg_img_cam, (4400, 0))
+        
+    vector_img = [f for f in os.listdir(img_path) if (f.startswith('eval_')) and f.endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif'))]
+    if len(vector_img) != 0:
+        vector_img = os.path.join(img_path, vector_img[0])
+        vec_img_cam_ori = Image.open(vector_img)
+        vec_img_cam = vec_img_cam_ori.resize((1600, 1200))
+        new_cam_image.paste(vec_img_cam, (6600, 0))
+
+    overall_img = [f for f in os.listdir(img_path) if (f.startswith('6viewsfused')) and f.endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif'))]
+    if len(overall_img) != 0: 
+        overall_img = os.path.join(img_path, overall_img[0])
+        overall_img_ori = Image.open(overall_img)
+        overall_img_cam = overall_img_ori.resize((6000, 3600))
+        new_cam_image.paste(overall_img_cam, (0, 1200+1200*2))   
+   
+    seg_bev_img_ori = [f for f in os.listdir(img_path) if (f.startswith('fm_overall_')) and f.endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif'))]
+    if len(seg_bev_img_ori) != 0: 
+        seg_bev_img = os.path.join(img_path, seg_bev_img_ori[0])
+        seg_bev_ori = Image.open(seg_bev_img)
+        seg_bev = seg_bev_ori.resize((2200, 1200))
+        new_cam_image.paste(seg_bev, (2200, 0))
+    #
+    ###pastes the overall_img image onto the new_cam_image at the specified position (0, 1800). This means that 
+    # the top-left corner of overall_img will be placed at the x-coordinate 0 and the y-coordinate 1800 on the new_cam_image   
+    
+    # plt.imshow(bev_img_cam)
+    # plt.axis('off')
+    # plt.savefig(f'BEV_topdown_.jpg')
+    
+    # plt.imshow(seg_img_cam)
+    # plt.axis('off')
+    # plt.savefig(f'seg_.jpg')
+    
+    # plt.imshow(vec_img_cam)
+    # plt.axis('off')
+    # plt.savefig(f'vec_.jpg')
+             
+    # if not os.path.exists(segment_sample_path):
+    #     os.mkdir(segment_sample_path)
+    # shutil.copy(segment_img, segment_sample_path)
+        
+    raw_imgs = sorted([f for f in os.listdir(img_path) if (((('fm_imgafter_norm') in f) or ('pvimg_before_norm' in f)) and f.endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif')))])  
+    for imgn, image_file in enumerate(raw_imgs):
+        rows = imgn//6
+        rols = imgn%6  
+        image_path = os.path.join(img_path, image_file)                  
+        pv = Image.open(image_path).resize((1600,1200)) 
+        new_cam_image.paste(pv, (rols * 1600, 1200+1200*rows))      
+    
+    img_dir = os.path.join(pltimage_result_dir,'cluster')
+       
+    if not os.path.exists(img_dir):
+        os.mkdir(img_dir)
+    
+    img_name = f'cluster_{batchi:06}_{smaple_token}.jpg'    
+    new_image_path = os.path.join(img_dir,img_name)       
+    new_cam_image.save(new_image_path)
+    shutil.copy(new_image_path, img_path)
+    # batchi = batchi + 1    
+    print(f"exported to {new_image_path}")
+    
+    
 def vis_resutls(args, img_name, batchi, sample_token_str):
     batchi = 0
     # cluster imge path
@@ -136,7 +225,8 @@ def vis_segmentation(model, val_loader):
             #semantic[semantic_gt < 0.1] = np.nan
             sample_token_str = sample_token[0]
             pltimage_dir = os.path.join('plt_images', sample_token_str)
-            
+            if not os.path.exists(pltimage_dir):
+                os.mkdir(pltimage_dir)
             for si in range(semantic.shape[0]):
                 #print(len(semantic[0][1]))
                 #print(semantic[0][1])
@@ -295,7 +385,7 @@ def vis_vector(model, val_loader, angle_class):
                 print('saving', img_name)
                 plt.savefig(img_name)
                 plt.close()
-                
+                # vis_resutls_lss(args, img_name, batchi, sample_token_str, pltimage_result_dir)
                 # vis_resutls(args, img_name, batchi, sample_token_str)
 
 
