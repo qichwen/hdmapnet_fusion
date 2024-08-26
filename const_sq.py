@@ -18,7 +18,7 @@ IMG_ORIGIN_W = 1600
 """
 CAMS_PMAP = {
     'CAM_FRONT_LEFT': 'camera_cross_left_120fov_frames',
-    'CAM_FRONT':'camera_front_tele_sat_30fov_frames',
+    'CAM_FRONT':'camera_front_tele_30fov_frames',
     'CAM_FRONT_RIGHT':'camera_cross_right_120fov_frames',
     'CAM_BACK_LEFT':'camera_rear_left_70fov_frames',
     'CAM_BACK':'camera_rear_tele_30fov_frames',

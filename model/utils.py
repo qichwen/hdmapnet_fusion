@@ -2,8 +2,10 @@ import torch
 
 def plane_grid_2d(xbound, ybound):
     xmin, xmax = xbound[0], xbound[1]
+    # 60, -60
     num_x = int((xbound[1] - xbound[0]) / xbound[2])
     ymin, ymax = ybound[0], ybound[1]
+    # 30, -30
     num_y = int((ybound[1] - ybound[0]) / ybound[2])
 
     y = torch.linspace(xmin, xmax, num_x).cuda()

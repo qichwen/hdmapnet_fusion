@@ -27,7 +27,7 @@ import shutil
 from cv_distortion import *
 
 class MyDataset(Dataset):
-    #1. #del all img from path/cam, then trans imgs from source path, img crop 
+    #1. #del all img from each cam folder under given modinput_path, then trans imgs from source path, img crop is optional 
     #2. Calulating and storage the mean and std for current channel_modality
     #3. *DONE : reply current channel mean and std to Normalization method under dataset.py
         
@@ -172,7 +172,8 @@ def list_folders(path, prefix = 'CAM_'):
     return cam_folders     
         
 def imgs_preprocessor(modinput_path, source_path, scene, crop):
-    # read get_mean_std for each channel
+    # read get_mean_std for each channel 
+    # distortion on each img under source path
     # return a dict{} incl. channel - mean / std
     # modinput_path = 'dataset/nuscenes_mb/samples/'
     
@@ -189,10 +190,28 @@ def imgs_preprocessor(modinput_path, source_path, scene, crop):
             # mean, std = get_mean_std(dataloader)
             # cams_map[folder_name] = (mean, std)
         else:
-            continue
+            continue 
     
-     
-    
+    """CAMS_PMAP = {
+    'CAM_FRONT_LEFT': 'camera_cross_left_120fov_frames',
+    #'CAM_FRONT':'camera_front_wide_120fov_frames',
+    'CAM_FRONT':'camera_front_tele_30fov_frames',
+    'CAM_FRONT_RIGHT':'camera_cross_right_120fov_frames',
+    'CAM_BACK_LEFT':'camera_rear_left_70fov_frames',
+    'CAM_BACK':'camera_rear_tele_30fov_frames',
+    'CAM_BACK_RIGHT':'camera_rear_right_70fov_frames',
+    }
+
+    CAMPARAM_MAP = {
+        'LF120': 'camera_cross_left_120fov_frames',
+        'F30': 'camera_front_tele_30fov_frames',
+        #'F120': 'camera_front_wide_120fov_frames',
+        'RF120': 'camera_cross_right_120fov_frames',
+        'LR70': 'camera_rear_left_70fov_frames',
+        'R30': 'camera_rear_tele_30fov_frames',
+        'RR70': 'camera_rear_right_70fov_frames',
+    }
+    """
     # 基于文件夹名创建从CAMPARAM_MAP到CAMS_PMAP的反向映射
     folder_to_cam_map = {v: k for k, v in CAMS_PMAP.items()}
 

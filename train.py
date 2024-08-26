@@ -124,7 +124,7 @@ def train(args):
             opt.step()
             counter += 1
             t1 = time()
-
+            
             if counter % 10 == 0:
                 intersects, union = get_batch_iou(onehot_encoding(semantic), semantic_gt)
                 iou = intersects / (union + 1e-7)
@@ -142,7 +142,8 @@ def train(args):
                 writer.add_scalar('train/direction_loss', direction_loss, counter)
                 writer.add_scalar('train/final_loss', final_loss, counter)
                 writer.add_scalar('train/angle_diff', angle_diff, counter)
-
+        
+        #Anyway to marrallel the loss and eval ???
         iou = eval_iou(model, val_loader)
         logger.info(f"EVAL[{epoch:>2d}]:    "
                     f"IOU: {np.array2string(iou[1:].numpy(), precision=3, floatmode='fixed')}")
@@ -161,8 +162,8 @@ def train(args):
             torch.save(best_model, model_name)
             logger.info(f"{model_name} saved")
             # Print the current epoch and IOU value
-            logger.info(f'The new best Epoch found !!! epoch num is : {epoch}, val iou: {iou[1:0]} , overall IOU: {overall_iou:.4f}')
-            print(f'The new best Epoch found !!! epoch num is : {epoch}, val iou: {iou[1:0]} , overall IOU: {overall_iou:.4f}')
+            logger.info(f'The new best Epoch found !!! epoch num is : {epoch}, val iou: {iou[1:][0] + iou[1:][1] + iou[1:][2]} , overall IOU: {overall_iou:.4f}')
+            print(f'The new best Epoch found !!! epoch num is : {epoch}, val iou: {iou[1:][0] + iou[1:][1] + iou[1:][2]} , overall IOU: {overall_iou:.4f}')
             
         model.train()
 

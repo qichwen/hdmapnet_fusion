@@ -291,8 +291,8 @@ def create_and_save_mapping(sensor_json_path, calibrated_sensor_json_path, outpu
     # 使用函数  
     
     
-def ingester(sceneid, startts,endts,data_dir,output_json_path, base_path):  
-    # Define data directory and file paths
+def ingester(sceneid, startts,endts,data_dir,output_json_path, base_path):  #args.modinput_path
+    # Define data directory and file paths 
     from copy import deepcopy
 
     calibrated_sensor_json_path = os.path.join(data_dir, 'calibrated_sensor.json')  
@@ -334,17 +334,19 @@ def ingester(sceneid, startts,endts,data_dir,output_json_path, base_path):
     print(scenes[0].__dict__.items())
     scene = 0
     
-    #check scene, #new scene
+    #check scenes in exists json to see if it's new scene
     for sc in scenes:
         
         if sceneid in sc.name:
-            print(f"scene existed:{sceneid}")            
+            print(f"scene existed already from scene.json :{sceneid}")            
             scene = sc.copy()
             break
         
-    if scene:
+    if scene != 0:
+        # exists
         pass
     else:
+        # given sceneid is new
         scene = scenes[0].copy()
         scene.token = generate_random_token()
         scene.name = sceneid
@@ -488,6 +490,11 @@ if __name__ == '__main__':
     
     # log_file_path = os.path.join(v_path, 'video2image.log')
     
+    """n004_western_straight_24s"""  
+    scene_num="scene-n004"  
+    ts_start = .0 #start ts of the scene : 1:52, heading west and straight forward 24s
+    ts_end = .0 #end ts of the scene : 2:16
+    
     """n005_western_straight_24s"""  
     scene_num="scene-n005"  
     ts_start = 5408.0 #start ts of the scene : 1:52, heading west and straight forward 24s
@@ -513,7 +520,7 @@ if __name__ == '__main__':
     # process_videos(args.v_path, args.sceneid, args.startts, args.endts) 
     # input 
     
-    """frame pre-processer and transit to sample/"""
+    """frame pre-processer (distortion) and transit to sample/"""
     """CAMS_PMAP = {
     'CAM_FRONT_LEFT': 'camera_cross_left_120fov_frames',
     'CAM_FRONT':'camera_front_wide_120fov_frames',
@@ -525,7 +532,7 @@ if __name__ == '__main__':
     }
     """
     imgs_preprocessor(args.modinput_path, args.source_path, args.sceneid, crop=False)
-    # print(cam_maps)    
+    # print(cam_maps) 
     
     ingester(args.sceneid, args.startts, args.endts, args.output_dir, args.output_json_path, args.modinput_path)
     

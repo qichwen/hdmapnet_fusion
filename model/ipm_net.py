@@ -77,6 +77,7 @@ class IPMNet(nn.Module):
             return topdown
         
 class TemporalIPMNet(IPMNet):
+    # model = TemporalIPMNet([-60,60,0.6], [-30,30,0.6], 4)
     def __init__(self, xbound, ybound, outC, camC=64, instance_seg=True, embedded_dim=16):
         super(TemporalIPMNet, self).__init__(xbound, ybound, outC, camC, instance_seg, embedded_dim, cam_encoding=True, bev_encoding=True, z_roll_pitch=False)
 
@@ -99,33 +100,44 @@ class TemporalIPMNet(IPMNet):
 
     def temporal_fusion(self, topdown, translation, yaw, smp):
         #
-        draw_tensor(smp, topdown)
-        
+        # draw_tensor(smp, topdown)        
         B, T, C, H, W = topdown.shape   
-        
-        if T == 1:
-            
+        # torch.Size([1, 2, 64, 100, 200])        
+        if T == 1:            
             return topdown[:, 0]
-
         grid = plane_grid_2d(self.xbound, self.ybound).view(1, 1, 2, H*W).repeat(B, T-1, 1, 1)
-        rot0 = get_rot_2d(yaw[:, 1:])
+        #  torch.Size([1, 3, 2, 20000])   # 200 * 100;              
+        rot0 = get_rot_2d(yaw[:, 1:])   
+        # torch.Size([1, 3, 2, 2])     
         trans0 = translation[:, 1:, :2].view(B, T-1, 2, 1)
+        # torch.Size([1, 1, 2, 1])
         rot1 = get_rot_2d(yaw[:, 0].view(B, 1).repeat(1, T-1))
+        # torch.Size([1, 3, 2, 2]) 
         trans1 = translation[:, 0, :2].view(B, 1, 2, 1).repeat(1, T-1, 1, 1)
+        # torch.Size([1, 3, 2, 1])
         grid = rot1.transpose(2, 3) @ grid
         grid = grid + trans1
+        # grid - trans0 ?? or grid - trans1 + trans0 ???
         grid = grid - trans0
         grid = rot0 @ grid
+        #torch.Size([3, 100, 200, 2])
         grid = grid.view(B*(T-1), 2, H, W).permute(0, 2, 3, 1).contiguous()
         grid = cam_to_pixel(grid, self.xbound, self.ybound)
+        #torch.Size([3, 100, 200, 2])
         topdown = topdown.permute(0, 1, 3, 4, 2).contiguous()
         prev_topdown = topdown[:, 1:]
         warped_prev_topdown = bilinear_sampler(prev_topdown.reshape(B*(T-1), H, W, C), grid).view(B, T-1, H, W, C)
-        topdown = torch.cat([topdown[:, 0].unsqueeze(1), warped_prev_topdown], axis=1)
-        topdown = topdown.view(B, T, H, W, C)
-        topdown = topdown.max(1)[0]
+        # topdown torch.Size([1, 4, 100, 200, 64])
+        topdown = torch.cat([topdown[:, 0].unsqueeze(1), warped_prev_topdown], axis=1)        
+        # topdown torch.Size([1, 4, 100, 200, 64])
+        # 24-Aug remarked for multi frames fusion 
+        # topdown = topdown.view(B, T, H, W, C)
+        topdown = topdown.max(1)[0] #torch.Size([1, 100, 200, 64])
         topdown = topdown.permute(0, 3, 1, 2).contiguous()
-        return topdown
+        return topdown #torch.Size([1, 64, 100, 20  
+        # current codes above only using this temporal fusion for single frame improvement !
+        # display function needed for multi frames fusion result present
+    
 
     # def forward(self, points, points_mask, x, rots, trans, intrins, post_rots, post_trans, translation, yaw_pitch_roll,smp):
     def forward(self, x, rots, trans, intrins, post_rots, post_trans, translation, yaw_pitch_roll,smp):
@@ -174,8 +186,7 @@ class TemporalIPMNet(IPMNet):
         # del fig
         # del a
         # gc.collect()
-        # print('Atfer gc :', process.memory_info().rss)  # in bytes
-        
+        # print('Atfer gc :', process.memory_info().rss)  # in bytes        
         
         return self.bevencode(topdown)
 

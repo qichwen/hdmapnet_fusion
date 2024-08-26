@@ -297,8 +297,7 @@ class IPM(nn.Module):
     
     def forward(self, images, Ks, RTs,samp_token, translation, yaw_roll_pitch, post_RTs=None):
         images = images.permute(0, 1, 3, 4, 2).contiguous()
-        B, N, H, W, C = images.shape
-        
+        B, N, H, W, C = images.shape        
         
         if self.z_roll_pitch:
             # z, roll, pitch = self.plane_esti(images)

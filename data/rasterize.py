@@ -93,7 +93,8 @@ def preprocess_map(vectors, patch_size, canvas_size, num_classes, thickness, ang
     vector_num_list = {}
     for i in range(num_classes):
         vector_num_list[i] = []
-
+    
+    # gathering vects based on its type
     for vector in vectors:
         if vector['pts_num'] >= 2:
             vector_num_list[vector['type']].append(LineString(vector['pts'][:vector['pts_num']]))

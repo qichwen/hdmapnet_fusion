@@ -45,15 +45,16 @@ class VectorizedLocalMap(object):
         self.fixed_num = fixed_num
 
     def gen_vectorized_samples(self, location, ego2global_translation, ego2global_rotation):
-        map_pose = ego2global_translation[:2]
-        rotation = Quaternion(ego2global_rotation)
-        # self.patch_size h30, w60
+        map_pose = ego2global_translation[:2] #offsets in meters
+        rotation = Quaternion(ego2global_rotation) #radians
+        # hmn self.patch_size h30, w60
         # self.patch_size h100, w100
+        # patch_box: Patch box defined as [x_center, y_center, height, width]
         patch_box = (map_pose[0], map_pose[1], self.patch_size[0], self.patch_size[1]) # 
-        patch_angle = quaternion_yaw(rotation) / np.pi * 180
+        patch_angle = quaternion_yaw(rotation) / np.pi * 180 #into degree
 
         line_geom = self.get_map_geom(patch_box, patch_angle, self.line_classes, location)
-        line_vector_dict = self.line_geoms_to_vectors(line_geom)
+        line_vector_dict = self.line_geoms_to_vectors(line_geom) #Road divider + lane divider
 
         ped_geom = self.get_map_geom(patch_box, patch_angle, self.ped_crossing_classes, location)
         # ped_vector_list = self.ped_geoms_to_vectors(ped_geom)

@@ -113,14 +113,12 @@ class HDMapNet(nn.Module):
         #     topdown = torch.cat([topdown, lidar_feature], dim=1)
         # return self.bevencode(topdown)
         
-        process = psutil.Process(os.getpid())
-        print('BeforeFigure:', process.memory_info().rss)  # in bytes
+        # process = psutil.Process(os.getpid())
+        # print('BeforeFigure:', process.memory_info().rss)  # in bytes
         
         #TODO: controll by param
-        draw = False
-        
-        
-        
+        draw = False      
+                
         if draw:
             imgs_path = os.path.join('plt_images', samp_token)
             if not os.path.exists(imgs_path):
@@ -147,7 +145,7 @@ class HDMapNet(nn.Module):
                 
                 # 调整子图之间的间距  
                 # plt.subplots_adjust(wspace=0.5, hspace=0.5)
-                print('Before close:', process.memory_info().rss)  # in bytes
+                #print('Before close:', process.memory_info().rss)  # in bytes
                 plt.savefig(f'plt_images/{samp_token}/pvs_norm.png')
             plt.close(fig)
             # a.remove()
@@ -156,7 +154,7 @@ class HDMapNet(nn.Module):
             plt.cla()
             del fig
             gc.collect()
-        print('pvs_norm:', process.memory_info().rss)  # in bytes
+        # print('pvs_norm:', process.memory_info().rss)  # in bytes
 
         #CAMS = ['CAM_FRONT_LEFT', 'CAM_FRONT', 'CAM_FRONT_RIGHT', 'CAM_BACK_LEFT', 'CAM_BACK', 'CAM_BACK_RIGHT']
         x = self.get_cam_feats(img)
@@ -189,7 +187,7 @@ class HDMapNet(nn.Module):
                 
             plt.savefig(f'plt_images/{samp_token}/6viewsfused.png')  
             plt.close(fig)
-            print('6viewsfused:', process.memory_info().rss)  # in bytes
+            #print('6viewsfused:', process.memory_info().rss)  # in bytes
 
         # plt.savefig(f'{imgs_path}/vtfm_6views_into1.png') 
 
@@ -283,11 +281,11 @@ class HDMapNet(nn.Module):
             # plt.imshow(fm)            
             plt.close(a)
             plt.close(fig)
-            print('Atfer close :', process.memory_info().rss)  # in bytes
+            #print('Atfer close :', process.memory_info().rss)  # in bytes
             del fig
             del a
             gc.collect()
-            print('Atfer gc :', process.memory_info().rss)  # in bytes
+            # print('Atfer gc :', process.memory_info().rss)  # in bytes
             # seg, emb, dir = self.bevencode(topdown)
         
         #store imgs of 4 chns bev
@@ -302,6 +300,6 @@ class HDMapNet(nn.Module):
         # a.set_title('segfm')
         # plt.savefig(f'{imgs_path}/fm_overall_{samp_token}.png', bbox_inches='tight')  
               
-        gc.collect()
-        gc.collect()
+        #gc.collect()
+        #gc.collect()
         return self.bevencode(topdown) # torch.Size([1, 4, 200, 400])

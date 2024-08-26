@@ -17,6 +17,7 @@ def gen_dx_bx(xbound, ybound):
     nx = [(row[1] - row[0]) / row[2] for row in [xbound, ybound]]
     print(nx)
     return dx, bx, nx
+#'pts': coord * dx + bx
 
 def export_to_json(model, val_loader, angle_class, args):
     submission = {
@@ -38,7 +39,7 @@ def export_to_json(model, val_loader, angle_class, args):
             if torch.cuda.is_available():
                 segmentation, embedding, direction = model(imgs.cuda(), trans.cuda(), rots.cuda(), intrins.cuda(),
                                                         post_trans.cuda(), post_rots.cuda(), lidar_data.cuda(),
-                                                        lidar_mask.cuda(), car_trans.cuda(), yaw_pitch_roll.cuda())
+                                                        lidar_mask.cuda(), car_trans.cuda(), yaw_pitch_roll.cuda(), sample_token)
             else:
                 segmentation, embedding, direction = model(imgs, trans, rots, intrins,
                                                         post_trans, post_rots, lidar_data,
@@ -46,8 +47,12 @@ def export_to_json(model, val_loader, angle_class, args):
 
             for si in range(segmentation.shape[0]):
                 coords, confidences, line_types = vectorize(segmentation[si], embedding[si], direction[si], angle_class)
+                # multi-geoline, confidences, line_types, within each type
                 vectors = []
                 for coord, confidence, line_type in zip(coords, confidences, line_types):
+                    # each geoline, confidence, line_type, within each type
+                    # dx = [0.15, 0.15]
+                    # bx = [-29.925, -14.925]
                     vector = {'pts': coord * dx + bx, 'pts_num': len(coord), "type": line_type, "confidence_level": confidence}
                     vectors.append(vector)
                 rec = val_loader.dataset.samples[batchi * val_loader.batch_size + si]
