@@ -28,6 +28,7 @@ HDMapNet-fusion.code-workspace
 *.pt
 
 # demo
+*.dot
 *.jpg
 *.png
 *.obj
