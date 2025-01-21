@@ -313,6 +313,7 @@ def ingester(sceneid, startts,endts,data_dir,output_json_path, base_path):  #arg
     sensor_keys = []
     for attr_name, value in sensors[-1].__dict__.items():
         sensor_keys.append(attr_name)
+        
     #if 'calibrated_sensor_token' not in sensor_keys:    
     if not sensors[-1].calibrated_sensor_token:
         create_and_save_mapping(sensors, calibrated_sensors, output_json_path)
@@ -490,12 +491,12 @@ if __name__ == '__main__':
     
     # log_file_path = os.path.join(v_path, 'video2image.log')
     
-    """n004_western_straight_24s"""  
+    """n004_western_straight_24s samples on mzone internal roads"""  
     scene_num="scene-n004"  
     ts_start = .0 #start ts of the scene : 1:52, heading west and straight forward 24s
     ts_end = .0 #end ts of the scene : 2:16
     
-    """n005_western_straight_24s"""  
+    """n005_western_straight_24s samples on mzone hwy roads"""  
     scene_num="scene-n005"  
     ts_start = 5408.0 #start ts of the scene : 1:52, heading west and straight forward 24s
     ts_end = 5433.0 #end ts of the scene : 2:16

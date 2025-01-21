@@ -73,29 +73,6 @@ def main(args):
         batchi = batchi + 1
     print(f"exported to {args.output}")
 
-    # # the output vedio
-    # output_video = os.path.join(args.output, 'image_cluster.mp4')
-    # image_files = [f for f in sorted(os.listdir(cluster_path)) if f.endswith('.jpg')]
-    # # 创建VideoWriter对象并指定编码器、分辨率等参数
-    # fourcc = cv2.VideoWriter_fourcc(*'mp4v') # 选择合适的编码器（如XVID）
-    # # frame_width = int(cv2.__version__.split(".")[0]) < 3 and 640 or 1920 # 根据OpenCV版本自动调整分辨率
-    # # frame_height = int(cv2.__version__.split(".")[0]) < 3 and 480 or 1080
-    # # out = cv2.VideoWriter(output_video, fourcc, 25.0, (frame_width, frame_height), True)
-    # out = cv2.VideoWriter(output_video, fourcc, 5, (1600*3, 900*3-100))
-    
-    # for image_file in image_files:
-    #     img = cv2.imread('{}/{}'.format(cluster_path, image_file))
-    #     if img is None:
-    #         print(image_file + " is error!")
-    #         continue
-    #     # 在此处进行其他操作或修改图像
-    
-    #     out.write(img) # 写入当前帧到视频文件
-    # out.release() # 关闭视频文件
-    # cv2.destroyAllWindows()
-    # print("Done!")
-
-
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser(description='Collect the images.')

@@ -5,9 +5,6 @@ __pycache__/
 
 .gitignore copy
 
-HDMapNet-fusion.code-workspace
-
-
 # C extensions
 *.so
 
@@ -62,6 +59,7 @@ arch/
 # Ignore files with specific extensions
 *.pyc
 *.log
+*.xcf
 dgps_aligned_info.txt
 rig_dynamic_calibration.json
 

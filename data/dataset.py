@@ -34,6 +34,10 @@ class HDMapNetDataset(Dataset):
         self.vector_map = VectorizedLocalMap(dataroot, patch_size=self.patch_size, canvas_size=self.canvas_size)
         self.scenes = self.get_scenes(version, is_train)
         self.samples = self.get_samples()
+        
+        """for training"""
+        self.draw = False
+
 
     def __len__(self):
         return len(self.samples)
@@ -84,11 +88,11 @@ class HDMapNetDataset(Dataset):
 
     def sample_augmentation(self):
         # 设置数据增强配置参数
-        self.data_conf['resize_lim'] = (0.193, 0.225)
-        self.data_conf['bot_pct_lim'] = (0.0, 0.22)
+        self.data_conf['resize_lim'] = (0.18, 0.24)
+        self.data_conf['bot_pct_lim'] = (0.0, 0.15)
         self.data_conf['rand_flip'] = False
-        self.data_conf['rot_lim'] = (-5.4, 5.4)
-        self.data_conf['brightness_lim'] = (-50, 50)  # 新增亮度变化范围
+        self.data_conf['rot_lim'] = (-6.4, 6.4)
+        self.data_conf['brightness_lim'] = (-80, 80)  # 新增亮度变化范围
 
         # 获取目标图像尺寸
         fH, fW = self.data_conf['image_size']
@@ -175,7 +179,7 @@ class HDMapNetDataset(Dataset):
             # 3, 128, 352  
             
             
-            # visualizer_plt(img, counter, sample_token, sample_channel, ts, "imgafter_norm")                             
+            visualizer_plt(img, counter, sample_token, sample_channel, ts, "imgafter_norm")                             
             post_trans.append(post_tran)
             post_rots.append(post_rot)
             imgs.append(img)
@@ -191,7 +195,7 @@ class HDMapNetDataset(Dataset):
         location = self.nusc.get('log', self.nusc.get('scene', rec['scene_token'])['log_token'])['location']
         ego_pose = self.nusc.get('ego_pose', self.nusc.get('sample_data', rec['data']['LIDAR_TOP'])['ego_pose_token'])
         vectors = self.vector_map.gen_vectorized_samples(location, ego_pose['translation'], ego_pose['rotation'])
-        return vectors
+        return vectors # return the 3 types of features within the patch box
 
     def __getitem__(self, idx):
         rec = self.samples[idx]
@@ -226,6 +230,7 @@ class HDMapNetSemanticDataset(HDMapNetDataset):
         imgs, trans, rots, intrins, post_trans, post_rots = self.get_imgs(rec)
         lidar_data, lidar_mask = self.get_lidar(rec)
         car_trans, yaw_pitch_roll = self.get_ego_pose(rec)
+        # 
         semantic_masks, instance_masks, _, _, direction_masks = self.get_semantic_map(rec)
         sample_token = rec.get('token')
         return imgs, trans, rots, intrins, post_trans, post_rots, lidar_data, lidar_mask, car_trans, yaw_pitch_roll, semantic_masks, instance_masks, direction_masks,sample_token

@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 from PIL import Image  
 import numpy as np
 import torch  
+import gc
 
 def init_tb_logger(log_dir):
     from torch.utils.tensorboard import SummaryWriter
@@ -118,8 +119,12 @@ def visualizer_plt(x,counter, sample_token, sample_channel, ts, step, imgs_dir =
         
     # plt.axis('off')
     imgname = f'plt_images/{sample_token}/{counter}_{step}_{sample_channel}_{ts}.jpg'
-    plt.savefig(imgname)
-    plt.close()
+    plt.axis('off')
+    plt.savefig(imgname, bbox_inches='tight', pad_inches=0)
+    
+    # plt.show()
+    plt.close('all') 
+    gc.collect()
     # plt.imshow(xn[0][:3].transpose(1,2,0)) #三通道显示
 
 def process_videos(path, scene_num, ts_start, ts_end):

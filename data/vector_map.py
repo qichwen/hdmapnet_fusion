@@ -60,8 +60,8 @@ class VectorizedLocalMap(object):
         # ped_vector_list = self.ped_geoms_to_vectors(ped_geom)
         ped_vector_list = self.line_geoms_to_vectors(ped_geom)['ped_crossing']
 
-        polygon_geom = self.get_map_geom(patch_box, patch_angle, self.polygon_classes, location)
-        poly_bound_list = self.poly_geoms_to_vectors(polygon_geom)
+        polygon_geom = self.get_map_geom(patch_box, patch_angle, self.polygon_classes, location) #contour:['road_segment', 'lane']
+        poly_bound_list = self.poly_geoms_to_vectors(polygon_geom) 
 
         vectors = []
         for line_type, vects in line_vector_dict.items():
